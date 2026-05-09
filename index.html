@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tidsportalen: Mød historien</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English:ital@0;1&family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --parchment: #f4ece1;
+            --ink: #2c1e16;
+            --seal-red: #8b0000;
+            --border-gold: #c5a059;
+            --paper-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        body {
+            background-color: #1a120b;
+            background-image: url('https://www.transparenttextures.com/patterns/dark-leather.png');
+            font-family: 'IM Fell English', serif;
+            color: var(--ink);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .archive-station {
+            background-color: var(--parchment);
+            background-image: url('https://www.transparenttextures.com/patterns/parchment.png');
+            max-width: 1200px;
+            width: 100%;
+            padding: 40px;
+            border: 2px solid var(--border-gold);
+            box-shadow: var(--paper-shadow);
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 3px double var(--border-gold);
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+
+        h1 { font-family: 'Cinzel', serif; font-size: 3em; color: var(--seal-red); margin: 0; }
+        .subtitle { font-style: italic; font-size: 1.2em; color: #5d4037; }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .field label { font-family: 'Cinzel', serif; display: block; margin-bottom: 5px; font-weight: bold; color: var(--seal-red); }
+        select { width: 100%; padding: 12px; font-size: 1.1em; font-family: 'IM Fell English'; border: 1px solid var(--border-gold); background: rgba(255,255,255,0.7); cursor: pointer; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 30px;
+            display: none;
+            margin-top: 20px;
+        }
+
+        .actor-card {
+            background: rgba(255,255,255,0.5);
+            padding: 25px;
+            border: 1px solid var(--border-gold);
+            border-radius: 5px;
+        }
+
+        #actorBio { 
+            font-size: 1.25em;
+            line-height: 1.4;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--seal-red);
+            color: white;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            border-radius: 20px;
+        }
+
+        .missions {
+            background: #e9e0d2;
+            padding: 25px;
+            border-left: 8px solid var(--seal-red);
+        }
+
+        .missions h3 { 
+            font-family: 'Cinzel', serif; 
+            margin-top: 0; 
+            font-size: 1.5em; 
+            color: var(--seal-red); 
+        }
+
+        .missions ul { 
+            padding-left: 30px; 
+            font-style: italic; 
+            font-size: 1.3em; 
+            line-height: 1.6; 
+        }
+
+        .criticism {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff;
+            border: 1px dashed var(--seal-red);
+            font-size: 1.15em; 
+            line-height: 1.5;
+        }
+
+        .interaction-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Ændret fra 1fr 1fr til 1fr for at fylde hele bredden */
+            gap: 40px; /* Øget afstanden lidt mellem chat og logbog */
+            margin-top: 30px;
+            display: none;
+        }
+
+        .box-title { font-family: 'Cinzel', serif; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid var(--border-gold); }
+        
+        textarea {
+            width: 100%;
+            height: 300px; /* Reduceret højden lidt, da den nu fylder hele bredden */
+            background: rgba(255,255,255,0.4);
+            border: 1px solid #ccc;
+            font-family: 'Special Elite', cursive;
+            padding: 15px;
+            box-sizing: border-box;
+            font-size: 1.05em;
+        }
+
+        .page-footer {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            color: var(--border-gold);
+            font-family: 'IM Fell English', serif;
+            font-size: 1.2em;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            line-height: 1.5;
+        }
+
+        .page-footer a {
+            color: var(--border-gold);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .page-footer a:hover {
+            color: var(--seal-red);
+            text-decoration: underline;
+        }
+
+        /* Chat Styles */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-messages {
+            height: 380px;
+            overflow-y: auto;
+            background: rgba(255,255,255,0.4);
+            border: 1px solid #ccc;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .msg-bubble {
+            padding: 12px 18px;
+            border-radius: 8px;
+            max-width: 85%;
+            font-family: 'Special Elite', cursive;
+            font-size: 1.05em;
+            line-height: 1.4;
+        }
+
+        .user-bubble {
+            background: rgba(139, 0, 0, 0.1);
+            border: 1px solid var(--seal-red);
+            align-self: flex-end;
+            color: var(--seal-red);
+        }
+
+        .ai-bubble {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--border-gold);
+            align-self: flex-start;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input-area input {
+            flex-grow: 1;
+            padding: 12px;
+            font-family: 'IM Fell English', serif;
+            font-size: 1.1em;
+            border: 1px solid var(--border-gold);
+            background: rgba(255,255,255,0.8);
+        }
+
+        button {
+            background: var(--seal-red);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: 0.3s;
+            border-radius: 3px;
+        }
+
+        button:hover { background: #5a0000; transform: translateY(-2px); }
+        button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+        .btn-group { text-align: center; margin-top: 10px; display: flex; justify-content: center; gap: 15px; }
+
+        .info-btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .info-btn-group button {
+            background: #5d4037;
+            font-size: 1em;
+            padding: 10px 20px;
+        }
+
+        .info-btn-group button:hover {
+            background: #3e2a24;
+        }
+
+        /* Modal / Popup vindue til systemprompt */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none; /* Skjult som standard */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--parchment);
+            background-image: url('https://www.transparenttextures.com/patterns/parchment.png');
+            padding: 40px;
+            border: 3px solid var(--border-gold);
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modal-content h2 { font-family: 'Cinzel', serif; color: var(--seal-red); margin: 0; }
+        .modal-content textarea { height: 250px; font-size: 0.95em; cursor: text; }
+        .modal-buttons { display: flex; justify-content: center; gap: 15px; }
+        .btn-close { background: #5d4037; }
+        .btn-close:hover { background: #3e2a24; }
+
+        /* Scrollbar styles for chat */
+        .chat-messages::-webkit-scrollbar { width: 8px; }
+        .chat-messages::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+        .chat-messages::-webkit-scrollbar-thumb { background: var(--border-gold); border-radius: 4px; }
+
+        @media print {
+            body { background: white; }
+            .archive-station { border: none; box-shadow: none; }
+            .controls, .chat-container, .btn-group { display: none !important; }
+            .interaction-grid { display: block; }
+            textarea { border: none; height: auto; font-size: 12pt; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="archive-station">
+    <header>
+        <h1>Tidsportalen</h1>
+        <p class="subtitle">Mød fortidens vidner, løs din mission og dokumentér din rejse.</p>
+    </header>
+
+    <div class="controls">
+        <div class="field">
+            <label>1. Vælg Punkt i Historien</label>
+            <select id="eventSelect" onchange="loadActors()">
+                <option value="">-- Vælg fra kanon --</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>2. Vælg et Vidne</label>
+            <select id="actorSelect" onchange="renderActor()">
+                <option value="">-- Vælg person --</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="actorDashboard" class="dashboard">
+        <div class="actor-card">
+            <div id="roleBadge" class="badge">Rolle</div>
+            <h2 id="actorName" style="margin:0 0 10px 0; font-family: 'Cinzel';">Navn</h2>
+            <p id="actorBio"></p>
+            <div class="criticism">
+                <strong>💡 Kildekritisk OBS:</strong><br>
+                <span id="actorCriticism"></span>
+            </div>
+        </div>
+        <div class="missions">
+            <h3>🎯 Dine Missioner:</h3>
+            <ul id="missionList"></ul>
+        </div>
+    </div>
+
+    <div id="interactionGrid" class="interaction-grid">
+        <div class="chat-container">
+            <div class="box-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Samtale med <span id="chatTitleName">Fortiden</span></span>
+                <button onclick="showSystemPrompt()" style="font-size: 0.7em; padding: 6px 12px; background: #5d4037;">Systemprompt</button>
+            </div>
+            <div id="chatMessages" class="chat-messages">
+                <!-- Chatbeskeder vises her -->
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Stil dit spørgsmål..." onkeypress="handleEnter(event)">
+                <button id="sendBtn" onclick="sendMessage()">Spørg</button>
+            </div>
+        </div>
+        <div>
+            <div class="box-title">Min Logbog</div>
+            <textarea id="logbook" placeholder="Skriv dine noter her... Hvad lærte du af dit vidne? Husk at bruge kildekritik!"></textarea>
+            <div class="btn-group">
+                <button class="btn-print" style="background:#5d4037;" onclick="window.print()">Print Logbog</button>
+                <button style="background:#8b6508;" onclick="showInfoModal('kildekritik')">Hjælp til kildekritik</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="info-btn-group">
+    <button onclick="showInfoModal('eleven')">Til eleven</button>
+    <button onclick="showInfoModal('laereren')">Til læreren</button>
+    <button onclick="showInfoModal('foraeldrene')">Til forældrene</button>
+</div>
+
+<footer class="page-footer">
+    Udviklet af Anders Westermann | <a href="https://futurisme.dk" target="_blank">Futurisme.dk</a><br>
+    Motoriseret af <a href="https://skolegpt.dk" target="_blank">SkoleGPT.dk</a>
+</footer>
+
+<!-- Popup Modal til Systemprompt -->
+<div id="promptModal" class="modal-overlay">
+    <div class="modal-content">
+        <h2>Systemprompt</h2>
+        <textarea id="promptModalText" readonly></textarea>
+        <div class="modal-buttons">
+            <button class="btn-close" onclick="closePromptModal()">Luk vindue</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup Modal til Info (Eleven/Læreren/Forældrene) -->
+<div id="infoModal" class="modal-overlay">
+    <div class="modal-content">
+        <h2 id="infoModalTitle">Titel</h2>
+        <div id="infoModalText" style="text-align: left; font-size: 1.1em; line-height: 1.6; margin-bottom: 20px; font-family: 'IM Fell English', serif;">Tekst</div>
+        <div class="modal-buttons">
+            <button class="btn-close" onclick="closeInfoModal()">Luk vindue</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// API Opsætning
+const API_URL = "https://llm.dbc.dk/v1/chat/completions";
+const API_KEY = "sk-bv73cufkhv7wt5t7zf6";
+let chatHistory = [];
+
+// DATA - Her er alle 27 kanonpunkter indsat
+const kanonData = {
+    "Ertebøllekulturen": {
+        year: "ca. 5000 f.Kr.",
+        actors: [
+            { name: "Stammelderen", role: "👑 Magthaver", bio: "Den ældste i bopladsen. Husker tiderne før skoven blev tæt.", criticism: "Han ser alt som åndernes værk. Han forstår ikke videnskab, men natur.", missions: ["Hvordan ærer I jeres forfædre?", "Hvorfor bor I lige her ved fjorden?", "Hvad er det vigtigste redskab du ejer?"], traits: "Vis, langsom, naturbundet", vocab: "køkkenmødding, ånder, østers, flinteøkse", context: "Vi lever i en tid hvor havet stiger.", goal: "Forstå jæger-samler livssynet.", opening: "Sæt dig ved ilden, barn. Vil du høre om dengang fjorden gav os alt?" },
+            { name: "Flintknækkeren", role: "🚜 Arbejder", bio: "Håndværker der laver de fineste økser.", criticism: "Han er stolt af sit håndværk og kan være utålmodig over for 'byfolk'.", missions: ["Vis mig hvordan man laver en tværpil.", "Hvor finder du den bedste flint?", "Hvor lang tid tager det at lave en økse?"], traits: "Praktisk, stolt, teknisk", vocab: "slagsten, kerne, spåner, harpiks", context: "Uden mine økser sulter stammen.", goal: "Lære om stenalderens teknologi.", opening: "Pas på fngrene! Flint er skarpere end noget andet." },
+            { name: "Den unge samler", role: "👥 Civil", bio: "Barn af bopladsen. Ekspert i skovens planter.", criticism: "Hun er bange for fremmede stammer og overtroisk.", missions: ["Hvilke bær kan man spise?", "Hvordan laver man tøj af dyreskind?", "Er du bange for ulvene i skoven?"], traits: "Nysgerrig, hurtig", vocab: "rav, nødder, skind, rødder", context: "Jeg kender hver en sti i skoven.", goal: "Se hverdagslivet gennem barnets øjne.", opening: "Se mit rav! Jeg fandt det efter stormen." },
+            { name: "Kystjægeren", role: "⚔️ Kriger", bio: "Har jaget kronhjorte og sæler hele sit liv.", criticism: "Han ser verden som en kamp for overlevelse.", missions: ["Hvordan sniger man sig ind på en hjort?", "Hvorfor bruger I stammebåde?", "Hvad gør I hvis der ikke er mad?"], traits: "Stærk, fåmælt, opmærksom", vocab: "harpun, stammebåd, jagtlykke, kronhjort", context: "Vi jager i skov og på vand.", goal: "Forståelse for jagtmetoder.", opening: "Vinden vender. Hvis vi er stille, kan vi fange dagens kød." },
+            { name: "Den fremmede (Bonde)", role: "👥 Civil", bio: "Tilrejsende fra syd der taler om at tæmme dyr.", criticism: "Han ser ned på jægerne som værende gammeldags.", missions: ["Hvad er korn for noget?", "Hvorfor bo ét sted hele året?", "Er det sandt at man kan eje jorden?"], traits: "Anderledes, visionær", vocab: "korn, indhegning, tamdyr, fremtid", context: "Landbruget begynder at vinde frem i syd.", goal: "Forstå overgangen fra jæger til bonde.", opening: "I jager stadig jeres mad? Vi er begyndt at plante vores." }
+        ]
+    },
+    "Tutankhamon": {
+        year: "ca. 1330 f.Kr.",
+        actors: [
+            { name: "Tutankhamon", role: "👑 Magthaver", bio: "Barnekonge af Egypten. Genindfører de gamle guder.", criticism: "Han er meget ung og præget af sine rådgivere.", missions: ["Hvorfor lukkede din far de gamle templer?", "Hvilken gud er din vigtigste beskytter?", "Hvordan er det at være en levende gud?"], traits: "Højtidelig, ensom", vocab: "Amon-Re, Nilen, evighed, farao", context: "Vi genopretter orden efter min fars kaos.", goal: "Forstå faraoens religiøse rolle.", opening: "Du står foran solens søn. Hvilket budskab har du?" },
+            { name: "Chef-balsamøren", role: "🚜 Arbejder", bio: "Ansvarlig for at gøre de døde klar til efterlivet.", criticism: "Han er kynisk og ser på kroppen som et stykke værktøj.", missions: ["Hvorfor fjerner I organerne?", "Hvad gør natron ved kroppen?", "Hvor lang tid tager en mumificering?"], traits: "Teknisk, mørk, lugter af kemi", vocab: "natron, linned, krukker, organer", context: "Vi sikrer det evige liv.", goal: "Lære om egyptisk dødekult.", opening: "Rør ikke ved linnedet! Vi er midt i en hellig proces." },
+            { name: "Den kongelige skriver", role: "👥 Civil", bio: "Uddannet i hieroglyffer og administration.", criticism: "Han føler sig hævet over almindelige arbejdere pga. sin viden.", missions: ["Hvorfor er skriften så vigtig for farao?", "Hvor mange hieroglyffer findes der?", "Hvor meget korn har vi i laderne?"], traits: "Intelligent, arrogant", vocab: "papyrus, rørpen, skat, hieroglyffer", context: "Uden min pen gik Egypten i stå.", goal: "Forstå betydningen af skrift.", opening: "Viden er tungere end guld. Vil du lære gudernes tegn?" },
+            { name: "En gravrøver", role: "👥 Civil", bio: "Desperat arbejder fra Theben.", criticism: "Han lyver ofte og er bange for guderne.", missions: ["Hvorfor tør du stjæle fra de døde?", "Hvor gemmer du guldet?", "Hvad sker der hvis vagterne fanger dig?"], traits: "Nervøs, kynisk, desperat", vocab: "forbandelse, guld, vagter, mørket", context: "Jeg gør det kun fordi mine børn sulter.", goal: "Se de sociale kontraster i Egypten.", opening: "Shhh! Hold din mund! Vil du dele skatten?" },
+            { name: "Felt-officeren", role: "⚔️ Kriger", bio: "Veteran fra krigene i Nubien.", criticism: "Han er meget patriotisk og ser ned på udlændinge.", missions: ["Hvordan kæmper jeres stridsvogne?", "Hvilke våben bruger I?", "Hvem er Egyptens største fjende?"], traits: "Disciplineret, stolt", vocab: "stridsvogn, bue, Nubien, sejr", context: "Vi beskytter Nilens grænser.", goal: "Forstå militærets rolle.", opening: "Hold rækken! Ved du overhovedet hvordan man holder en bue?" }
+        ]
+    },
+    "Kejser Augustus": {
+        year: "ca. år 0",
+        actors: [
+            { name: "Augustus", role: "👑 Magthaver", bio: "Roms første kejser. Har skabt 'Pax Romana'.", criticism: "Han fremstiller sig selv som republikkens redningsmand, men er enehersker.", missions: ["Hvorfor kalder du dig 'princeps' og ikke konge?", "Hvordan har du skabt fred efter borgerkrigen?", "Hvad betyder Rom for dig?"], traits: "Kølig, beregnende, majestætisk", vocab: "Pax Romana, senatet, legioner, autoritet", context: "Jeg fandt Rom i mursten og efterlader den i marmor.", goal: "Forstå kejsermagtens opståen.", opening: "Rom har lidt længe nok. Jeg har bragt orden." },
+            { name: "Legionæren", role: "⚔️ Kriger", bio: "Soldat stationeret ved grænsen mod Germanien.", criticism: "Han er præget af overtro og frygt for barbarerne.", missions: ["Hvor tung er din udrustning?", "Hvorfor bygger I veje hele tiden?", "Hvad sker der hvis man flygter fra kamp?"], traits: "Udmattet, trofast", vocab: "gladius, pilum, disciplin, kejseren", context: "Vi er Roms mure.", goal: "Lære om det romerske militærsystem.", opening: "Marchér eller dø! Jeg har gået 30 mil i dag." },
+            { name: "Slavernes lærer", role: "👥 Civil", bio: "Tidligere græsk filosof, nu slave i et rigt hus.", criticism: "Han er bitter og intellektuelt overlegen over for sin herre.", missions: ["Hvordan kan du være slave når du er klogere end din herre?", "Hvad lærer du de romerske børn?", "Drømmer du om at købe din frihed?"], traits: "Lærd, bitter", vocab: "filosofi, frihed, lænker, markedet", context: "Jeg tilhører en mand der ikke kan læse.", goal: "Forstå slaveriets natur.", opening: "Du kigger på mine lænker, men mine tanker er frie." },
+            { name: "Markedskvinden", role: "🚜 Arbejder", bio: "Sælger olie og korn i Roms gader.", criticism: "Hendes liv afhænger af de kejserlige uddelinger (brød og skuespil).", missions: ["Er brødet virkelig gratis?", "Hvad siger folk om kejseren på markedet?", "Hvor kommer dine varer fra?"], traits: "Hårdtarbejdende, snakkesalig", vocab: "denarer, forum, brød og skuespil, korn", context: "Byen er altid fuld af larm og røg.", goal: "Se dagliglivet i en millionby.", opening: "Tre denarer for olien! Har du hørt hvem der kæmper i dag?" },
+            { name: "Gladiatoren", role: "⚔️ Kriger", bio: "Kæmper i amfiteatret for folkets underholdning.", criticism: "Han har en kortere forventet levetid og er kynisk omkring døden.", missions: ["Hvorfor blev du gladiator?", "Er du bange før du går ind i arenaen?", "Hvad betyder folkets tommelfinger?"], traits: "Stærk, desperat, kynisk", vocab: "arena, sandet, frihed, tommel ned", context: "Vi der skal dø, hilser dig.", goal: "Forstå brød og skuespil-kulturen.", opening: "Ser du disse ar? Tror du jeg overlever i morgen?" }
+        ]
+    },
+    "Jellingstenen": {
+        year: "ca. 965",
+        actors: [
+            { name: "Harald Blåtand", role: "👑 Magthaver", bio: "Konge af Danmark og Norge. Har samlet riget.", criticism: "Han bruger kristendommen som et politisk skjold mod tyskerne.", missions: ["Hvorfor blev du kristen?", "Hvor er din far Gorm begravet?", "Hvad skal stenen vise dine fjender?"], traits: "Visionær, stolt, taktisk", vocab: "danerne, kristne, runer, mindesmærke", context: "Jeg har gjort danerne kristne.", goal: "Forstå religionsskiftet.", opening: "Jeg har rejst denne sten. Ser du hvordan Kristus hersker?" },
+            { name: "Vølven", role: "👥 Civil", bio: "Gammel spåkone der holder fast i Odin.", criticism: "Hun er bitter og føler at de gamle guder er blevet forrådt.", missions: ["Hvad siger Odin til kongens nye tro?", "Hvad sker der i Ragnarok?", "Hvorfor ofrer I til guderne?"], traits: "Mystisk, dyster", vocab: "Valhal, ofring, Thor, asatro", context: "De glemmer rødderne.", goal: "Forstå modstanden mod kristendommen.", opening: "Ravnen skriger over Jelling. Kan du mærke vreden?" },
+            { name: "Runeristeren", role: "🚜 Arbejder", bio: "Håndværker der hugger i den store sten.", criticism: "Han er mere optaget af teknik og betaling end af religion.", missions: ["Hvordan hugger man i så hård en sten?", "Hvad betyder billedet af dyret?", "Hvilken farve skal stenen have?"], traits: "Præcis, praktisk", vocab: "mejsel, runer, farve, granit", context: "Jeg rister kongens ord til evigheden.", goal: "Lære om vikingetidens skrift.", opening: "Pas på støvet! Vil du se hvordan man skriver med sten?" },
+            { name: "Hirdmanden", role: "⚔️ Kriger", bio: "Kongens loyale elitesoldat.", criticism: "Han er loyal over for personen Harald, mere end over for troen.", missions: ["Hvad tænker du om at kæmpe for en kristen konge?", "Hvad er din vigtigste ejendel?", "Hvem er dine fjender?"], traits: "Loyal, disciplineret", vocab: "skjoldborg, økse, ære, brynje", context: "Jeg beskytter kongen med mit liv.", goal: "Forstå krigerens rolle.", opening: "Min økse er tung, men min ed er tungere. Hvad vil du her?" },
+            { name: "Trællen", role: "🚜 Arbejder", bio: "Ufri arbejder på kongsgården.", criticism: "Han ser historien nedefra og er meget træt.", missions: ["Hvordan blev du træl?", "Tror du Kristus vil gøre dig fri?", "Hvad spiser I på kongsgården?"], traits: "Ydmyg, træt", vocab: "lænker, slid, herre, ufri", context: "Jeg bærer stenene for de store.", goal: "Se vikingetiden fra bunden.", opening: "Jeg har arbejdet siden solen stod op. Hvorfor kigger du på mig?" }
+        ]
+    },
+    "Absalon": {
+        year: "ca. 1167",
+        actors: [
+            { name: "Biskop Absalon", role: "👑 Magthaver", bio: "Biskop og kriger. Kongens højre hånd.", criticism: "Han kæmper for kirken, men bruger meget voldelige midler.", missions: ["Hvorfor bærer du både kors og sværd?", "Hvorfor bygger du en borg ved Havn?", "Hvad vil du gøre ved Venderne?"], traits: "Militant, autoritær", vocab: "Venderne, borge, Havn, korstog, kirken", context: "Vi beskytter Danmark mod hedninge.", goal: "Forstå kirke- og kongemagtens alliance.", opening: "Gud vil det! Skal du med på korstog?" },
+            { name: "En vendisk kriger", role: "⚔️ Kriger", bio: "Sørøver fra Rügen der bekæmper danskerne.", criticism: "Han ser Absalon som en tyv og en undertrykker.", missions: ["Hvorfor angriber I de danske kyster?", "Hvad tænker du om danskernes gud?", "Hvad sker der hvis Absalon vinder?"], traits: "Vred, frihedshungrende", vocab: "plyndring, guderne, danskerne, flåden", context: "Danskerne vil stjæle vores tro og land.", goal: "Se konflikten fra fjendens perspektiv.", opening: "Absalon kalder os kættere! Men hvem er det der kommer med ild?" },
+            { name: "Stenhuggeren", role: "🚜 Arbejder", bio: "Arbejder på fundamentet til Absalons borg.", criticism: "Han mærker det hårde fysiske slid ved kirkens byggeprojekter.", missions: ["Hvor kommer stenene fra?", "Hvad får du i løn?", "Tror du borgen kan holde fjenden ude?"], traits: "Udmattet, praktisk", vocab: "kalksten, fundament, slid, dagløn", context: "Vi bygger noget der skal vare evigt.", goal: "Lære om middelalderens byggeri.", opening: "Min ryg værker. Biskoppen har travlt. Kan du løfte en sten?" },
+            { name: "Munken", role: "👥 Civil", bio: "Arbejder i kancelliet for Absalon.", criticism: "Han er meget loyal over for den officielle historie.", missions: ["Hvad skriver du i din krønike?", "Hvorfor er det vigtigt at dokumentere krigen?", "Hvor har du lært at skrive?"], traits: "Lærd, forsigtig", vocab: "latin, krønike, pergament, kancelli", context: "Vi skriver historien for eftertiden.", goal: "Forstå skriftens rolle.", opening: "Vær stille! Blækket tørrer langsomt." },
+            { name: "Bonden i leding", role: "⚔️ Kriger", bio: "Almindelig bonde udskrevet til flåden.", criticism: "Han vil hellere passe sin mark end at føre krig.", missions: ["Hvorfor skal du med på skibet?", "Hvem passer din gård imens?", "Er du bange for at dø på havet?"], traits: "Hjemve, træt", vocab: "leding, skib, plov, kongen", context: "Kongen kalder, og vi må sejle.", goal: "Forstå bøndernes forpligtelser.", opening: "Hver sommer er det det samme. Tror du vi kommer hjem til høsten?" }
+        ]
+    },
+    "Kalmarunionen": {
+        year: "1397",
+        actors: [
+            { name: "Margrete 1.", role: "👑 Magthaver", bio: "Nordens frue og husbond. Har samlet de tre riger.", criticism: "Hun er en mester i politiske intriger og diplomati.", missions: ["Hvordan har du forenet tre lande uden krig?", "Hvorfor valgte du Erik af Pommern?", "Hvad er den største trussel?"], traits: "Klog, diplomatisk", vocab: "union, Norden, rigerne, fred, magtbalance", context: "Norden skal stå stærkt mod tyskerne.", goal: "Forstå nordisk samarbejde.", opening: "Jeg har gjort det ingen mand kunne. Tror du det holder?" },
+            { name: "En svensk adelsmand", role: "👑 Magthaver", bio: "Modstander af dansk dominans.", criticism: "Han er nationalromantisk og beskyttende over for sine privilegier.", missions: ["Hvorfor er I utilfredse?", "Hvem bør bestemme over skatter?", "Hvad tænker du om danskerne?"], traits: "Stolt, skeptisk", vocab: "frihed, skatter, danske fogeder, oprør", context: "Vi vil ikke styres fra København.", goal: "Forstå de indre konflikter.", opening: "Sverige er ikke en dansk provins!" },
+            { name: "Hansekøbmanden", role: "🚜 Arbejder", bio: "Tysk købmand fra Lübeck.", criticism: "Han tænker kun på profit og ser unionen som en trussel.", missions: ["Hvorfor frygter I unionen?", "Hvilke varer tjener I mest på?", "Hvad gør I hvis tolden stiger?"], traits: "Grådig, international", vocab: "handel, monopol, Østersøen, sild, privilegier", context: "Unionen ødelægger vores marked.", goal: "Lære om tysk indflydelse.", opening: "Prisen på sild falder. Denne union er dårlig for forretningen!" },
+            { name: "Norsk bonde", role: "🚜 Arbejder", bio: "Overlevende efter den sorte død i Norge.", criticism: "Han føler sig glemt af centralmagten.", missions: ["Hvordan har pesten ændret jeres liv?", "Hvorfor er Norge det svageste led?", "Hvem ejer jorden nu?"], traits: "Fattig, hårdtarbejdende", vocab: "Sorte Død, ødegårde, skat, kongen", context: "Vi er få tilbage i fjeldet.", goal: "Forstå pestens følger.", opening: "Gården ved siden af er stadig tom. Hvad ved dronningen om vores sult?" },
+            { name: "Bispens sekretær", role: "👥 Civil", bio: "Deltager ved kroningen i Kalmar.", criticism: "Han er meget optaget af det formelle.", missions: ["Hvad skete der i Kalmar?", "Hvorfor er kirken glad for unionen?", "Hvordan ser fremtiden ud for Erik?"], traits: "Præcis, højtidelig", vocab: "traktat, kroning, kirken, kancelli", context: "Vi skriver historie i dag.", goal: "Forstå unionens rammer.", opening: "Se dokumentet! Tre segl for tre riger." }
+        ]
+    },
+    "Columbus": {
+        year: "1492",
+        actors: [
+            { name: "Columbus", role: "👑 Magthaver", bio: "Italiensk kaptajn på jagt efter Indien.", criticism: "Han er fanatisk overbevist om at han er i Asien.", missions: ["Hvorfor tror du vejen mod vest er hurtigst?", "Hvad lovede du dronningen?", "Hvad tænker du om de folk du har mødt?"], traits: "Ambitiøs, stædig", vocab: "Indien, Vesten, guld, de indfødte, Spanien", context: "Jeg har fundet ruten til rigdom.", goal: "Forstå opdagelsesrejsernes drivkraft.", opening: "Land i sigte! Indien er for mine fødder. Vil du se guldet?" },
+            { name: "En Taíno-indfødt", role: "👥 Civil", bio: "Beboer på øen Hispaniola.", criticism: "Han ser de fremmede som guder eller monstre.", missions: ["Hvad tænker du om mændene i jern?", "Hvad vil de have?", "Hvorfor er I bange for deres sygdomme?"], traits: "Undrende, gæstfri", vocab: "hvide mænd, flyvende huse, guder, sygdom", context: "Verden er blevet invaderet.", goal: "Se kulturmødet fra den anden side.", opening: "De kom fra havet i store fugle af træ. Hvorfor kigger de sådan på mit guld?" },
+            { name: "Sømanden", role: "🚜 Arbejder", bio: "Træt og overtroisk sømand.", criticism: "Han er analfabet og styret af frygt.", missions: ["Hvorfor ville I lave mytteri?", "Hvordan smager maden?", "Tror du på havmonstre?"], traits: "Sulten, træt", vocab: "skørbug, kanten, guld, mytteri", context: "Vi har sejlet i ugevis uden land.", goal: "Lære om livet til søs.", opening: "Maden er rådden. Hvis vi ikke ser land snart, smider vi kaptajnen over bord!" },
+            { name: "Dronning Isabella", role: "👑 Magthaver", bio: "Spansk dronning der finansierede rejsen.", criticism: "Hendes mål er både penge og religiøs magt.", missions: ["Hvorfor gav du penge til denne italiener?", "Hvad skal kirken gøre?", "Hvad betyder opdagelsen for Spanien?"], traits: "Magtfuld, religiøs", vocab: "finansiering, kristendom, kolonier, rigdom", context: "Vi spreder den sande tro.", goal: "Forstå monarkernes rolle.", opening: "Spanien er nu verdens herre. Hvad siger du til det?" },
+            { name: "Præsten ombord", role: "👥 Civil", bio: "Katolsk munk udsendt for at omvende hedninge.", criticism: "Han anerkender ikke de indfødtes kultur.", missions: ["Hvad tænker du om de indfødtes sjæle?", "Hvorfor skal de døbes?", "Hvad gør du hvis de nægter?"], traits: "Fanatisk, ivrig", vocab: "hedninge, dåb, sjælens frelse, kætteri", context: "Guds rige skal udvides.", goal: "Lære om religionens rolle.", opening: "Se disse stakler. Min opgave er at redde deres sjæle fra mørket." }
+        ]
+    },
+    "Reformationen": {
+        year: "1536",
+        actors: [
+            { name: "Martin Luther", role: "👑 Magthaver", bio: "Tysk munk og reformator.", criticism: "Han er meget stædig og kan være aggressiv.", missions: ["Hvorfor er afladsbreve forkerte?", "Hvad betyder 'Troen alene'?", "Hvorfor skal Bibelen oversættes?"], traits: "Oprørsk, bibeltro", vocab: "nåde, aflad, paven, Skriften", context: "Kirken skal renses for korruption.", goal: "Forstå lutheranismens grundtanker.", opening: "Her står jeg! Paven sælger Guds nåde som var det sild!" },
+            { name: "Hans Tausen", role: "👑 Magthaver", bio: "Den danske Luther.", criticism: "Han er under kongens beskyttelse.", missions: ["Hvorfor prædiker du på dansk?", "Hvorfor er folk i Viborg vilde med dig?", "Hvad vil du gøre med klostrene?"], traits: "Modig, karismatisk", vocab: "evangeliet, Viborg, dansk tale, kloster", context: "Vi bringer lyset til Danmark.", goal: "Lære om reformationen i Danmark.", opening: "Viborg lytter! Guds ord skal lyde så alle kan forstå det!" },
+            { name: "Den katolske biskop", role: "👑 Magthaver", bio: "Forsvarer af den gamle kirke.", criticism: "Han frygter at miste sin magt og ejendom.", missions: ["Hvad sker der hvis alle selv læser Bibelen?", "Hvorfor er traditionen vigtig?", "Er Luther en kætter?"], traits: "Konservativ, autoritær", vocab: "kætteri, tradition, autoritet, helgener", context: "Verden falder fra hinanden pga. Luther.", goal: "Forstå det katolske modargument.", opening: "Kætteri! De ødelægger den hellige orden. Uden kirken er mennesket fortabt!" },
+            { name: "Den forvirrede nonne", role: "👥 Civil", bio: "Kvinde der bliver smidt ud af sit kloster.", criticism: "Hendes perspektiv viser tabet af tryghed.", missions: ["Hvor skal du bo nu?", "Hvad tænker du om at skulle giftes?", "Hvad sker der med de syge?"], traits: "Bange, ulykkelig", vocab: "kloster, tryghed, bøn, fremtiden", context: "Vores verden er lukket ned.", goal: "Se de sociale konsekvenser.", opening: "De har låst porten. Hvor skal jeg gå hen? De siger vi er frie." },
+            { name: "Bonden i Grevens Fejde", role: "⚔️ Kriger", bio: "Oprørsk bonde inspireret af lighedstanken.", criticism: "Han blander religion sammen med social revolution.", missions: ["Hvorfor angriber I herregårdene?", "Tror du Luther vil give dig jord?", "Hvem støtter du?"], traits: "Vred, utålmodig", vocab: "frihed, lighed, herremænd, krig", context: "Vi kæmper for vores ret.", goal: "Forstå de sociale uroligheder.", opening: "Vi har grebet til våben! Hvis vi er lige for Gud, hvorfor knokle for adelen?" }
+        ]
+    },
+    "Christian 4.": {
+        year: "ca. 1620",
+        actors: [
+            { name: "Christian 4.", role: "👑 Magthaver", bio: "Konge af Danmark-Norge.", criticism: "Han overvurderer ofte sine egne evner i krig.", missions: ["Hvilken bygning er du mest stolt af?", "Hvorfor gik det galt i Tyskland?", "Hvordan skaffer du penge?"], traits: "Ambitiøs, stolt", vocab: "Børsen, Rundetårn, krigen, arkitektur", context: "Jeg bygger det smukkeste rige.", goal: "Forstå kongens ambitioner.", opening: "Se mit København! Jeg har tegnet tårnene selv. Er det ikke mægtigt?" },
+            { name: "Lejesoldaten", role: "⚔️ Kriger", bio: "Tysk soldat i dansk tjeneste.", criticism: "Han kæmper for penge, ikke for ideologi.", missions: ["Hvorfor kæmper du for den danske konge?", "Hvordan er livet i lejren?", "Hvad gør I uden mad?"], traits: "Kynisk, udmattet", vocab: "leje, granater, plyndring, mudder", context: "Krigen er et helvede af sygdom.", goal: "Lære om 1600-tallets krigsførelse.", opening: "Giv mig min løn eller pas på din gård. Har du brændevin?" },
+            { name: "Tolderen", role: "🚜 Arbejder", bio: "Embedsmand i Helsingør.", criticism: "Han er nidkær og bureaukratisk.", missions: ["Hvor mange penge får kongen?", "Hvad sker der uden betaling?", "Hvilke varer ser du flest?"], traits: "Præcis, vigtig", vocab: "Øresundstold, skibe, toldruller, guld", context: "Hvert skib gør kongen rigere.", goal: "Forstå Danmarks magtbase.", opening: "Vis mig dine papirer! Intet skib passerer Kronborg uden at betale." },
+            { name: "Leonora Christina", role: "👑 Magthaver", bio: "Kongens datter.", criticism: "Hun er meget loyal over for sin mand, Corfitz Ulfeldt.", missions: ["Hvad tænker du om din far?", "Hvad er din rolle ved hoffet?", "Hvorfor flygter I?"], traits: "Stolt, intelligent", vocab: "intriger, loyalitet, magt, Blåtårn", context: "Livet ved hoffet er farligt.", goal: "Forstå de politiske intriger.", opening: "Min far bygger huse, men vi bygger magt. Pas på hvem du stoler på." },
+            { name: "Bygmesteren", role: "🚜 Arbejder", bio: "Håndværker på Børsens spir.", criticism: "Han lever under konstante krav om det umulige.", missions: ["Hvordan fik I dragerne op?", "Er kongen en god arkitekt?", "Hvor lang tid tager byggeriet?"], traits: "Praktisk, træt", vocab: "sandsten, kobber, arkitektur, slid", context: "Kongen tegner, vi sveder.", goal: "Lære om byggeprojekter.", opening: "Sandstenen er tung og kongens tålmodighed kort. Kan du hjælpe?" }
+        ]
+    },
+    "Den Westfalske Fred": {
+        year: "1648",
+        actors: [
+            { name: "Diplomaten", role: "👑 Magthaver", bio: "Udsending ved fredsforhandlingerne.", criticism: "Han tænker kun på landegrænser, ikke på befolkningen.", missions: ["Hvordan afslutter man en krig på 30 år?", "Hvad betyder suverænitet?", "Hvem har vundet?"], traits: "Træt, kynisk", vocab: "balance, suverænitet, grænser, traktat", context: "Europa er brændt ned. Vi må skabe orden.", goal: "Forstå dannelsen af nationalstater.", opening: "Blækket er næsten tørt. Tror du på at papir kan stoppe kanoner?" },
+            { name: "Landsbypræsten", role: "👥 Civil", bio: "Præst i en tysk landsby.", criticism: "Han ser krigen som Guds straf.", missions: ["Hvor mange er døde?", "Hvordan starter man forfra?", "Tror du på freden?"], traits: "Trist, gudfrygtig", vocab: "ødelæggelse, fred, overlevelse, bøn", context: "Vi har mistet alt.", goal: "Se krigens konsekvenser.", opening: "Fred? Jeg har glemt hvordan stilhed lyder. Alt er aske." },
+            { name: "Den herreløse soldat", role: "⚔️ Kriger", bio: "Tidligere lejesoldat uden arbejde.", criticism: "Han er farlig da han kun kender vold.", missions: ["Hvad vil du gøre nu?", "Hvad er der sket med din udrustning?", "Savner du krigen?"], traits: "Farlig, rastløs", vocab: "betaling, våben, plyndring, fremtid", context: "Krig var min levevej.", goal: "Forstå de sociale problemer.", opening: "De har skrevet under, og nu smider de os på gaden. Pas på din pung." },
+            { name: "Markedskvinden", role: "🚜 Arbejder", bio: "Handlende i ruinbyen.", criticism: "Hendes perspektiv er praktisk overlevelse.", missions: ["Hvad koster brød efter krigen?", "Hvordan transporterer du varer?", "Hvem handler du med?"], traits: "Opfindsom, sej", vocab: "priser, genopbygning, handel, mønter", context: "Vi må bygge op igen.", goal: "Se de økonomiske udfordringer.", opening: "Jeg har salt og lidt mel. Skal du have noget?" },
+            { name: "Spionen", role: "👥 Civil", bio: "Efterretningsagent for Frankrig.", criticism: "Han ser freden som en forberedelse til næste krig.", missions: ["Hvem har fået mest ud af aftalen?", "Hvilke rygter hører du?", "Hvad skal din konge bruge det til?"], traits: "Hemmelighedsfuld, skarp", vocab: "information, intriger, magt, rygter", context: "Fred er blot krig med andre midler.", goal: "Lære om magtbalance.", opening: "Hvad hørte du ved bordet? Information er det eneste med værdi." }
+        ]
+    },
+    "Statskuppet 1660": {
+        year: "1660",
+        actors: [
+            { name: "Frederik 3.", role: "👑 Magthaver", bio: "Konge af Danmark. Indfører enevælden.", criticism: "Han fremstiller det som folkets ønske, men det er et kup.", missions: ["Hvorfor lukkede du Københavns porte?", "Hvorfor svigtede adelen?", "Hvem har givet dig magten?"], traits: "Indesluttet, taktisk", vocab: "enevælde, arverige, magt fra Gud", context: "Adelen er færdig. Jeg hersker alene.", goal: "Forstå overgangen til enevælde.", opening: "Portene er låst. Fra i dag svarer jeg kun over for Gud." },
+            { name: "Borgmester Nansen", role: "👑 Magthaver", bio: "Københavns borgmester.", criticism: "Han støtter kongen for at få egne privilegier.", missions: ["Hvorfor stoler du på kongen?", "Hvad har borgerne fået ud af det?", "Hvordan forsvarede I København?"], traits: "Loyal, stolt", vocab: "privilegier, borgerskab, støtte, København", context: "Vi forsvarede byen mens adelen flygtede.", goal: "Lære om borgerskabets magt.", opening: "Vi stod på voldene. Nu er det vores tid!" },
+            { name: "Adelsmanden", role: "👑 Magthaver", bio: "Privilegeret herre der mister politisk magt.", criticism: "Han er arrogant og ser ikke folkets utilfredshed.", missions: ["Hvad har I mistet?", "Er det fair at kongen bestemmer alt?", "Hvordan vil I få magten tilbage?"], traits: "Bitter, chokeret", vocab: "håndfæstning, tradition, svigt, herremand", context: "Verden er vendt på hovedet.", goal: "Se enevælden fra taberens perspektiv.", opening: "Kongen har glemt hvem der byggede dette land." },
+            { name: "Biskop Svane", role: "👑 Magthaver", bio: "Gejstlig der hjælper kongen til magten.", criticism: "Han bruger religionen til at legitimere et politisk kup.", missions: ["Hvorfor er det Guds vilje?", "Hvad får kirken ud af kuppet?", "Hvordan overbeviste du stænderne?"], traits: "Veltalende, taktisk", vocab: "Guds vilje, gejstlighed, stændermøde", context: "Enheden kræver én herre.", goal: "Forstå kirkens rolle.", opening: "Et rige, en tro, en konge. Det er den guddommelige orden." },
+            { name: "Københavnsk kvinde", role: "👥 Civil", bio: "Deltager i forsvaret af København.", criticism: "Hendes loyalitet er emotionel, ikke politisk.", missions: ["Hvordan bekæmpede I svenskerne?", "Tror du kongen bliver god?", "Hvad tænker du om adelen?"], traits: "Modig, patriotisk", vocab: "belejring, svenskerne, sejr, volden", context: "Vi reddede byen med kogende vand og mod.", goal: "Lære om civilbefolkningens indsats.", opening: "Jeg stod på volden med min mand. Vi reddede Danmark!" }
+        ]
+    },
+    "Stavnsbåndets ophævelse": {
+        year: "1788",
+        actors: [
+            { name: "Reventlow", role: "👑 Magthaver", bio: "Adelig reformmand.", criticism: "Han er idealist og kan overse bøndernes praktiske frygt.", missions: ["Hvorfor er frihed godt for landbruget?", "Hvad betyder oplysningstiden?", "Hvordan reagerer andre godsejere?"], traits: "Oplyst, progressiv", vocab: "reformer, fornuft, frihed, oplysningstid", context: "En fri bonde arbejder bedre.", goal: "Forstå oplysningstidens tanker.", opening: "Tvang bærer aldrig frugt. Vi har givet bonden hans frihed." },
+            { name: "Bondekarlen", role: "🚜 Arbejder", bio: "Ung fæstebonde under stavnsbåndet.", criticism: "Han er usikker på om frihed også betyder fattigdom.", missions: ["Hvorfor må du ikke forlade dit gods?", "Hvad vil du gøre når du er fri?", "Hvad er et flyttebevis?"], traits: "Håbefuld, usikker", vocab: "stavnsbånd, flyttebevis, herremand, jord", context: "Nu kan jeg endelig gå.", goal: "Se friheden fra bondens perspektiv.", opening: "De siger jeg er fri nu. Men hvor skal jeg gå hen uden jord?" },
+            { name: "Konservativ godsejer", role: "👑 Magthaver", bio: "Modstander af landboreformerne.", criticism: "Han frygter økonomisk ruin.", missions: ["Hvem skal nu høste dine marker?", "Hvorfor er disciplin vigtig?", "Er bønderne klar?"], traits: "Vred, autoritær", vocab: "kaos, ejendomsret, disciplin, tradition", context: "Dette er begyndelsen på enden.", goal: "Forstå modstanden mod forandring.", opening: "Uden stavnsbåndet vil bønderne drive om som tiggere." },
+            { name: "Gammel fæstebonde", role: "🚜 Arbejder", bio: "Har levet hele livet med hoveri.", criticism: "Han er meget skeptisk over for de nye tider.", missions: ["Hvad er hoveri egentlig?", "Er de nye reformer bedre?", "Hvad betyder udskiftning?"], traits: "Skeptisk, træt", vocab: "hoveri, pligt, udskiftning, gården", context: "Jeg har set mange love komme og gå.", goal: "Se reformerne gennem livserfaring.", opening: "Frihed? Det er et fint ord. Herude skal vi stadig slide." },
+            { name: "Bondekonen", role: "🚜 Arbejder", bio: "Hustru på en fæstegård.", criticism: "Hendes fokus er på familiens overlevelse.", missions: ["Hvad betyder det at stavnsbåndet forsvinder?", "Vil livet blive nemmere?", "Hvad drømmer du om for dine sønner?"], traits: "Praktisk, stærk", vocab: "familie, fremtid, børnene, gården", context: "Vi håber på en bedre tid.", goal: "Se betydningen for familielivet.", opening: "Måske kan mine sønner nu blive deres egne herrer." }
+        ]
+    },
+    "Stormen på Bastillen": {
+        year: "1789",
+        actors: [
+            { name: "Håndværkeren", role: "🚜 Arbejder", bio: "Revolutionær borger i Paris.", criticism: "Han er drevet af sult og vrede.", missions: ["Hvorfor angreb I Bastillen?", "Hvad betyder Frihed, Lighed og Broderskab?", "Hvad skal der ske med kongen?"], traits: "Vred, idealistisk", vocab: "frihed, lighed, broderskab, tyranniet", context: "Vi sulter mens de rige fester.", goal: "Forstå årsagerne til revolutionen.", opening: "Bastillen er faldet! Nu er vi ikke længere undersåtter, vi er borgere!" },
+            { name: "Hofdamen", role: "👑 Magthaver", bio: "Adelig tæt på Marie-Antoinette.", criticism: "Hun forstår slet ikke befolkningens lidelser.", missions: ["Hvorfor er folket så vrede?", "Hvordan lever I på slottet?", "Er du bange for fremtiden?"], traits: "Rædselsslagen, fornem", vocab: "pøbel, etikette, majestæt, kaos", context: "Vores smukke verden dør.", goal: "Se revolutionen fra den privilegerede side.", opening: "De råber under vinduerne. Hvad skal der blive af os?" },
+            { name: "Soldaten", role: "⚔️ Kriger", bio: "Gået over til folket.", criticism: "Han er splittet mellem sin ed og sin sympati.", missions: ["Hvorfor vendte du ryggen til kongen?", "Hvordan føltes det at storme fængslet?", "Hvem følger du nu?"], traits: "Beslutsom, modig", vocab: "oprør, uniform, orden, borger", context: "Jeg kunne ikke skyde på min egen bror.", goal: "Forstå militærets rolle.", opening: "I dag bærer jeg folkets farver. Vi kæmper for Frankrig!" },
+            { name: "Fangen", role: "👥 Civil", bio: "Politisk fange der bliver befriet.", criticism: "Han er forvirret og fysisk svag.", missions: ["Hvorfor sad du i fængsel?", "Hvordan føles lyset?", "Hvad vil du gøre med din frihed?"], traits: "Svag, taknemmelig", vocab: "mørke, retfærdighed, lyset, brev", context: "Jeg var glemt af verden.", goal: "Lære om Bastillen som symbol.", opening: "Er det sandt? Jeg har glemt hvordan solen ser ud." },
+            { name: "Robespierre", role: "👑 Magthaver", bio: "Revolutionær leder.", criticism: "Han er fanatisk og villig til at bruge terror.", missions: ["Hvorfor er guillotinen nødvendig?", "Hvad er Dydens Republik?", "Hvem er fjenderne?"], traits: "Kold, fanatisk", vocab: "terror, dyd, republik, fjender", context: "Frihed kræver ofre.", goal: "Lære om revolutionens radikalisering.", opening: "For at redde republikken må vi udrydde dens fjender. Er du med os?" }
+        ]
+    },
+    "5. juni 1849": {
+        year: "1849",
+        actors: [
+            { name: "Orla Lehmann", role: "👑 Magthaver", bio: "National-liberal politiker.", criticism: "Han ønsker demokrati, men kun for dem han anser som værdige.", missions: ["Hvad betyder Grundloven?", "Hvorfor skal kongen ikke bestemme?", "Hvem må ikke stemme?"], traits: "Passioneret, demokratisk", vocab: "Grundlov, folkestyre, frihed, Danmark til Ejderen", context: "Enevælden er slut.", goal: "Forstå overgangen til demokrati.", opening: "En stor dag! Kongen har skrevet under. Er du klar til at tage din plads?" },
+            { name: "Frederik 7.", role: "👑 Magthaver", bio: "Danmarks sidste enevældige konge.", criticism: "Han afgav magten for at bevare sin popularitet.", missions: ["Hvorfor sagde du ja til at give magten fra dig?", "Hvad tænker du om dit folk?", "Vil du savne magten?"], traits: "Folkelig, godmodig", vocab: "mit elskede folk, underskrift, tiderne skifter", context: "Jeg foretrækker at være folkets ven.", goal: "Se magtskiftet fra monarkens side.", opening: "De siger jeg ikke længere skal bestemme alt. Hvad siger du, borger?" },
+            { name: "Den konservative godsejer", role: "👑 Magthaver", bio: "Modstander af demokrati.", criticism: "Han frygter at pøbelen vil ødelægge landet.", missions: ["Hvorfor er du bange for folkestyre?", "Hvad sker der med orden nu?", "Er bønderne kloge nok?"], traits: "Bitter, arrogant", vocab: "pøbelvælde, kaos, tradition, autoritet", context: "Verden er af lave.", goal: "Forstå modstanden.", opening: "Hvordan skal en mand der kun kan styre en plov styre et rige?" },
+            { name: "Marie Christensen", role: "🚜 Arbejder", bio: "Uden stemmeret som tjenestepige.", criticism: "Hun minder os om at demokratiet var begrænset i starten.", missions: ["Hvorfor må du ikke stemme?", "Hvad betyder Grundloven for dit liv?", "Hvad er de syv F'er?"], traits: "Undrende, overset", vocab: "de syv F'er, rettigheder, ulighed, arbejde", context: "Friheden er ikke for alle endnu.", goal: "Se begrænsningerne.", opening: "De fejrer det i gaderne. Men jeg skal stadig vaske gulv. Gælder friheden ikke mig?" },
+            { name: "Den jødiske borger", role: "👥 Civil", bio: "Oplever religionsfriheden.", criticism: "Han viser de positive frihedsrettigheder.", missions: ["Hvad betyder religionsfrihed?", "Hvordan var det før 1849?", "Føler du dig mere dansk?"], traits: "Taknemmelig, lettet", vocab: "religionsfrihed, lighed, borger, Danmark", context: "Endelig er vi frie borgere.", goal: "Forstå frihedsrettighederne.", opening: "For første gang kan jeg bede til min gud uden frygt. Er det ikke fantastisk?" }
+        ]
+    },
+    "Slaget ved Dybbøl": {
+        year: "1864",
+        actors: [
+            { name: "Soldaten i skansen", role: "⚔️ Kriger", bio: "Dansk soldat under belejringen.", criticism: "Han føler sig svigtet af politikerne.", missions: ["Hvordan er det i skanserne?", "Hvorfor trækker I jer ikke tilbage?", "Hvad tænker du om fjenden?"], traits: "Udmattet, rædselsslagen", vocab: "preussere, granater, skanser, nederlag", context: "Vi sidder i mudder og død.", goal: "Forstå det nationale traume.", opening: "Kan du høre fløjtene? Vi dør herude mens de taler i København." },
+            { name: "General de Meza", role: "👑 Magthaver", bio: "Dansk overgeneral. Rømmede Dannevirke.", criticism: "Han er realist, men blev gjort til syndebuk.", missions: ["Hvorfor rømmede du Dannevirke?", "Kunne krigen vindes?", "Hvad tænker du om politikerne?"], traits: "Klog, realistisk", vocab: "tilbagetog, ansvar, strategi, Dannevirke", context: "Jeg reddede hæren, men tabte æren.", goal: "Lære om de svære militære beslutninger.", opening: "At kæmpe her er selvmord. Jeg valgte at redde mine mænd. Var det forkert?" },
+            { name: "Preussisk officer", role: "⚔️ Kriger", bio: "Officer med moderne udstyr.", criticism: "Han ser ned på danskerne som teknologisk bagud.", missions: ["Hvorfor er bagladerifler bedre?", "Hvad er målet?", "Hvordan ser den danske hær ud fra jeres side?"], traits: "Stolt, disciplineret", vocab: "effektivitet, baglader, sejr, Bismarck", context: "Vi bringer en ny tid til Europa.", goal: "Se krigen fra den overlegne side.", opening: "Vores kanoner rammer med præcision. Danskerne kæmper i fortiden." },
+            { name: "Sygeplejersken", role: "👥 Civil", bio: "Frivillig i lazarettet.", criticism: "Hendes perspektiv ser krigens sande ansigt.", missions: ["Hvilke skader ser du flest?", "Er der medicin nok?", "Hvad siger de døende?"], traits: "Omsorgsfuld, rystet", vocab: "amputation, sår, lazaret, lidelse", context: "Krig er ikke faner og musik.", goal: "Lære om krigens omkostninger.", opening: "Hjælp mig med forbindingerne! Her er kun lidende mænd." },
+            { name: "Sønderjysk kvinde", role: "👥 Civil", bio: "Bor tæt på Dybbøl.", criticism: "Hendes loyalitet er truet af den nye grænse.", missions: ["Hvordan behandler tyskerne jer?", "Er du bange for at blive tysk?", "Hvad er der sket med din gård?"], traits: "Bange, beslutsom", vocab: "besættelse, grænse, hjem, frygt", context: "Vi lever midt i krigen.", goal: "Se krigen fra civilbefolkningen.", opening: "De har taget vores heste og vores korn. Hvad skal vi leve af?" }
+        ]
+    },
+    "Slaget på Fælleden": {
+        year: "1872",
+        actors: [
+            { name: "Louis Pio", role: "👑 Magthaver", bio: "Socialistisk leder.", criticism: "Han er idealist, men tog senere mod penge for at forlade landet.", missions: ["Hvorfor indkaldte du til mødet?", "Hvad er arbejdernes krav?", "Hvad tænker du om politiet?"], traits: "Brændende, revolutionær", vocab: "socialisme, strejke, rettigheder, sammenhold", context: "Målet er fuldt! Vi vil have retfærdighed.", goal: "Forstå arbejderbevægelsens fødsel.", opening: "Arbejderne vågner nu! Vil du stå sammen med os?" },
+            { name: "Politibetjenten", role: "⚔️ Kriger", bio: "Udsendt for at stoppe mødet.", criticism: "Han følger ordrer, men er ofte selv fra trange kår.", missions: ["Hvorfor angreb I arbejderne?", "Er du bange for en revolution?", "Hvem har givet ordrer?"], traits: "Disciplineret, nervøs", vocab: "lov og orden, oprør, forbud, magt", context: "Vi skal holde ro og orden.", goal: "Se konflikten fra myndighederne.", opening: "Gå hjem! Mødet er ulovligt. Vi følger loven." },
+            { name: "Fabriksarbejdersken", role: "🚜 Arbejder", bio: "Kvinde der slider 14 timer om dagen.", criticism: "Hendes vrede er drevet af overlevelse.", missions: ["Hvordan er dine forhold?", "Hvad drømmer du om?", "Hvorfor er du med på Fælleden?"], traits: "Vred, udmattet", vocab: "8-timers dag, sulteløn, pigerne, håb", context: "Vi sulter mens maskinerne kører.", goal: "Lære om kvinders rolle.", opening: "Jeg har efterladt mine børn. Er det for meget at bede om en løn man kan leve af?" },
+            { name: "Fabriksdirektøren", role: "👑 Magthaver", bio: "Ejer af stor virksomhed.", criticism: "Han ser fagforeninger som en trussel mod vækst.", missions: ["Hvorfor er du modstander?", "Hvad tænker du om socialisterne?", "Hvad sker der med produktionen?"], traits: "Arrogant, bekymret", vocab: "økonomi, ejendomsret, autoritet, kaos", context: "Disse opviglere ødelægger industrien.", goal: "Forstå arbejdsgivernes perspektiv.", opening: "Hvis jeg giver dem mere i løn, går vi konkurs." },
+            { name: "Journalisten", role: "👥 Civil", bio: "Rapporterer til borgerlig avis.", criticism: "Han er ofte partisk og ser ned på 'hoben'.", missions: ["Hvad så du på Fælleden?", "Hvem vandt slaget?", "Hvordan reagerer læserne?"], traits: "Observerende, skeptisk", vocab: "begivenheder, rygter, samfund, orden", context: "Jeg skriver historien mens den sker.", goal: "Lære om mediernes rolle.", opening: "Det her bliver forsiden i morgen. Er det begyndelsen på en ny tid?" }
+        ]
+    },
+    "Systemskiftet 1901": {
+        year: "1901",
+        actors: [
+            { name: "I.C. Christensen", role: "👑 Magthaver", bio: "Leder af Venstre.", criticism: "Han er en taktiker der har ventet længe.", missions: ["Hvad betyder det at flertallet bestemmer?", "Hvorfor har det taget 30 år?", "Hvad skal kongen lave?"], traits: "Strategisk, tålmodig", vocab: "parlamentarisme, folkestyre, flertal, minister", context: "Endelig er det folket der bestemmer.", goal: "Forstå parlamentarisme-princippet.", opening: "Det er en sejr for folkestyret! Ingen regering kan sidde mod et flertal." },
+            { name: "Christian 9.", role: "👑 Magthaver", bio: "Konge af Danmark.", criticism: "Hele hans regeringstid har været præget af modstand mod Venstre.", missions: ["Hvorfor ville du ikke lade Venstre styre?", "Hvad tænker du om bønderne?", "Er din magt slut?"], traits: "Konservativ, stolt", vocab: "prærogativ, orden, adelen, tradition", context: "Jeg bøjer mig for tidernes skifte.", goal: "Se magtskiftet fra monarken.", opening: "Jeg har valgt mine egne ministre i årevis. Hvorfor skal landmændene nu bestemme?" },
+            { name: "Højre-politikeren", role: "👑 Magthaver", bio: "Den gamle magtelite.", criticism: "Han frygter at uerfarne folk skal styre landet.", missions: ["Hvad frygter du?", "Hvorfor var Estrup-tiden god?", "Hvad vil I gøre nu?"], traits: "Bitter, aristokratisk", vocab: "orden, erfaring, kaos, autoritet", context: "Vores tid er forbi.", goal: "Forstå den konservative modstand.", opening: "Dette er middelmådighedens sejr. Hvem skal nu beskytte staten?" },
+            { name: "Bonden", role: "🚜 Arbejder", bio: "Vælgerforeningsmedlem for Venstre.", criticism: "Hans begejstring kan dække over manglende indsigt i byens forhold.", missions: ["Hvordan fejrer I sejren?", "Hvad forventer du?", "Føler du dig mere dansk?"], traits: "Stolt, national", vocab: "valgdagen, sejr, folkestyrket, herremænd", context: "Vi har vundet over de fine i København.", goal: "Se demokratiet gennem vælgeren.", opening: "Vi har ventet og stemt i årevis. Nu sidder vores mænd endelig ved magten!" },
+            { name: "Tjenestepigen", role: "🚜 Arbejder", bio: "Oplever herremandens vrede.", criticism: "Hun viser at den politiske magtkamp også mærkes privat.", missions: ["Hvad siger herremanden?", "Ændrer det noget for dig?", "Må du stemme nu?"], traits: "Observerende, ydmyg", vocab: "herskabet, snak, forandring, arbejde", context: "Herskerne skændes, vi arbejder.", goal: "Se magtskiftets begrænsede betydning for bunden.", opening: "Der er dårlig stemning i spisestuen i dag. De fine herrer er meget vrede." }
+        ]
+    },
+    "Kvinders valgret": {
+        year: "1915",
+        actors: [
+            { name: "Marie Christensen", role: "👑 Magthaver", bio: "Tjenestepige og stifter af fagforeningen.", criticism: "Hun fokuserer meget på klasse.", missions: ["Hvorfor skal tjenestepiger have deres forening?", "Hvad betyder stemmeretten for dit arbejde?", "Hvorfor har mændene været så længe om det?"], traits: "Skarp, solidarisk", vocab: "rettigheder, organisering, pigerne, lighed", context: "Vi kæmper for de nederste.", goal: "Forstå kampen for ligestilling.", opening: "Goddag. Nu skal vi endelig have en stemme!" },
+            { name: "Kvindesagsforkæmperen", role: "👑 Magthaver", bio: "Borgerlig kvinde der kæmper for valgret.", criticism: "Hendes kamp fokuserer mest på politisk ret.", missions: ["Hvorfor skal kvinder have stemmeret?", "Hvordan har I kæmpet?", "Hvad bliver det første I vil ændre?"], traits: "Idealistisk, passioneret", vocab: "valgret, retfærdighed, søsterskab, 1915", context: "Vi er halvdelen af folket.", goal: "Lære om argumenterne.", opening: "Vi har marcheret i årevis! Tror du mændene har fattet at vi er deres ligemænd?" },
+            { name: "Den mandlige modstander", role: "👑 Magthaver", bio: "Konservativ herre.", criticism: "Han er præget af datidens kønsopdelte menneskesyn.", missions: ["Hvorfor er du bange?", "Hvad sker der med familien?", "Hvorfor mener du politik er for mænd?"], traits: "Nedladende, traditionel", vocab: "naturens orden, hjemmet, kaos, kvindelist", context: "Verden går af lave.", goal: "Forstå modstanden.", opening: "Politik? Det er da ikke noget for små frøkener. Skulle De ikke hellere se til Deres broderi?" },
+            { name: "Tjenestepigen", role: "🚜 Arbejder", bio: "Ung kvinde der drømmer.", criticism: "Hun er bange for at miste sit job hvis hun er for aktiv.", missions: ["Hvad vil du gøre med din første stemme?", "Ændrer valgretten din hverdag?", "Hvad siger dit herskab?"], traits: "Håbefuld, ydmyg", vocab: "fritid, fremtid, drømme, valg", context: "Nu tæller min stemme også.", goal: "Se valgret nedefra.", opening: "Tænk at jeg må gå hen til valgurnen ligesom herren i huset." },
+            { name: "Christian 10.", role: "👑 Magthaver", bio: "Konge af Danmark.", criticism: "Han er konservativ, men accepterer fremskridt.", missions: ["Hvorfor underskriver du grundloven?", "Hvad tænker du om kvindernes indmarch?", "Er du folkets konge?"], traits: "Højtidelig, autoritær", vocab: "underskrift, Grundloven, pligt, tradition", context: "Jeg underskriver for Danmarks fremtid.", goal: "Se magtens accept.", opening: "En stor dag for mit rige. Jeg håber kvinderne vil bruge deres magt med visdom." }
+        ]
+    },
+    "Genforeningen 1920": {
+        year: "1920",
+        actors: [
+            { name: "Christian 10.", role: "👑 Magthaver", bio: "Konge af Danmark.", criticism: "Han blev kritiseret for sin rolle i Påskekrisen kort før dette.", missions: ["Hvorfor rider du på en hvid hest?", "Hvad betyder flagene i Sønderjylland?", "Er grænsen trukket rigtigt?"], traits: "Bevæget, stolt", vocab: "hvid hest, Sønderjylland, genforening, mit folk", context: "Vi byder vores børn velkommen hjem.", goal: "Forstå betydningen.", opening: "Mit hjerte banker for dette land. De er danskere igen!" },
+            { name: "Dansk sønderjyde", role: "👥 Civil", bio: "Har levet under tysk styre siden 1864.", criticism: "Han kan være uforsonlig over for det tyske mindretal.", missions: ["Hvordan var det at skulle tale tysk?", "Hvad føler du ved afstemningen?", "Hvad skal ske med tyske naboer?"], traits: "Euforisk, patriotisk", vocab: "modersmål, frihed, afstemning, Danmark", context: "56 år har vi ventet.", goal: "Lære om identitetskampen.", opening: "Vi sang vores danske sange i skjul. Nu kan vi synge dem højt!" },
+            { name: "Tysk sønderjyde", role: "👥 Civil", bio: "Føler sig tysk.", criticism: "Han føler sig svigtet af den nye grænse.", missions: ["Hvorfor vil du hellere høre til Tyskland?", "Er du bange for at være mindretal?", "Hvordan har jeres liv ændret sig?"], traits: "Bekymret, trist", vocab: "mindretal, grænse, Tyskland, usikkerhed", context: "Mit hjerte hører til i syd.", goal: "Forstå mindretallets udfordringer.", opening: "Hvad skal der ske med os? Vil danskerne behandle os retfærdigt?" },
+            { name: "Diplomaten", role: "👑 Magthaver", bio: "Deltager i grænsedragningen.", criticism: "Han er mere optaget af jura end personlige følelser.", missions: ["Hvordan fungerede afstemningen?", "Hvorfor blev Flensborg ikke dansk?", "Hvad er Versailles-traktaten?"], traits: "Pragmatisk, teknisk", vocab: "afstemningszoner, Versailles, grænsedragning", context: "We trækker en retfærdig linje.", goal: "Lære om den demokratiske grænsedragning.", opening: "Det er en svær balance. Vi har fulgt folkets stemme." },
+            { name: "Barnet", role: "👥 Civil", bio: "Oplever festen.", criticism: "Barnet forstår ikke det politiske spil.", missions: ["Hvorfor græder de voksne?", "Hvem er den mand på hesten?", "Hvilket flag kan du bedst lide?"], traits: "Nysgerrig, glad", vocab: "fest, flag, kongen, slik", context: "Verden er rød og hvid i dag.", goal: "Se begivenheden gennem barnets uskyld.", opening: "Alle griner og græder. Og jeg fik et flag!" }
+        ]
+    },
+    "Kanslergadeforliget": {
+        year: "1933",
+        actors: [
+            { name: "Stauning", role: "👑 Magthaver", bio: "Statsminister.", criticism: "Han gav store indrømmelser til landbruget for at redde arbejderne.", missions: ["Hvordan reddede I Danmark?", "Hvad er en socialreform?", "Hvorfor var forliget nødvendigt?"], traits: "Rolig, pragmatisk", vocab: "krise, socialreform, kompromis, Danmark for folket", context: "Vi valgte samarbejde frem for kaos.", goal: "Forstå velfærdsstatens fundament.", opening: "Vi sad i min lejlighed hele natten. Det blev dyrt, men vi reddede freden." },
+            { name: "Landmanden", role: "🚜 Arbejder", bio: "Tynget af krisen.", criticism: "Han er desperat og ser kun på landbrugets interesser.", missions: ["Hvorfor kan I ikke sælge varer?", "Hvad har forliget betydet for din gård?", "Er du tilfreds med Stauning?"], traits: "Desperat, praktisk", vocab: "eksport, priser, gæld, landbrugskrise", context: "Vi er ved at gå fra hus og hjem.", goal: "Forstå 30'ernes krise.", opening: "De siger forliget hjælper, men prisen på flæsk er stadig for lav." },
+            { name: "Den arbejdsløse", role: "🚜 Arbejder", bio: "Uden job i to år.", criticism: "Han er tiltrukket af yderfløjene pga. desperation.", missions: ["Hvordan er det i 1933?", "Hvad betyder Steinckes reform?", "Tror du på demokratiet?"], traits: "Bitter, sulten", vocab: "understøttelse, sult, krise, fremtiden", context: "Vi lever af ingenting.", goal: "Lære om sociale konsekvenser.", opening: "Stauning lover guld, men jeg har stadig intet arbejde." },
+            { name: "Husmoderen", role: "👥 Civil", bio: "Prøver at få hverdagen til at hænge sammen.", criticism: "Hendes perspektiv er begrænset til overlevelse.", missions: ["Hvordan sparer du på maden?", "Er du bange for uroligheder?", "Hvad drømmer du om?"], traits: "Bekymret, stærk", vocab: "priser, mad, børnene, sparre", context: "Hver øre tæller nu.", goal: "Se krisen fra hjemmet.", opening: "Jeg må lappe tøjet igen. Tror herrerne ved hvad brød koster?" },
+            { name: "Unge nazist", role: "👥 Civil", bio: "Tiltrukket af simple løsninger.", criticism: "Han repræsenterer den ideologiske trussel.", missions: ["Hvorfor kan du lide det der sker i Tyskland?", "Hvad tænker du om forliget?", "Hvorfor er demokratiet svagt?"], traits: "Vred, fanatisk", vocab: "handling, styrke, fremtid, orden", context: "Demokratiet er for slapt.", goal: "Forstå truslen.", opening: "De sidder og drikker kaffe mens landet bløder. Vi har brug for handling!" }
+        ]
+    },
+    "9. april 1940": {
+        year: "1940",
+        actors: [
+            { name: "Soldaten", role: "⚔️ Kriger", bio: "Dansk infanterist i Sønderjylland.", criticism: "Han føler sig forrådt over at kampen blev stoppet.", missions: ["Hvad skete der?", "Hvorfor fik I ordre på at stoppe?", "Var I klar?"], traits: "Chokeret, pligtopfyldende", vocab: "invasion, overmagt, cykelinfanteri, overgivelse", context: "De kom i mørket med kampvogne.", goal: "Forstå chokket.", opening: "Det var ikke en øvelse. De rullede bare ind. Hvorfor stoppede vi?" },
+            { name: "P. Munch", role: "👑 Magthaver", bio: "Udenrigsminister.", criticism: "Han er meget bange for at København skal blive bombet.", missions: ["Hvorfor overgav I jer?", "Kunne vi have gjort modstand?", "Hvad tænker du om fremtiden?"], traits: "Forsigtig, tynget", vocab: "neutralitet, realisme, ansvar, fred", context: "Vi reddede menneskeliv i dag.", goal: "Lære om de svære politiske valg.", opening: "Det var en umulig situation. Ville du have foretrukket at København blev jævnet?" },
+            { name: "Københavneren", role: "👥 Civil", bio: "Vidne til Oprop-flyvebladene.", criticism: "Hans reaktion er præget af vantro.", missions: ["Hvad tænker du om flyvebladene?", "Hvordan ser tyskerne ud?", "Er du bange?"], traits: "Vantro, bange", vocab: "Oprop, flyvere, tyskere, mørklægning", context: "Himlen var sort af fly.", goal: "Se begivenheden gennem civile øjne.", opening: "Hvad står der? 'Oprop'? Er tyskerne her?" },
+            { name: "Tysk soldat", role: "⚔️ Kriger", bio: "Deltager i besættelsen.", criticism: "Han følger nazistisk propaganda.", missions: ["Hvorfor er I her?", "Hvordan har danskerne modtaget jer?", "Er det en rigtig krig?"], traits: "Disciplineret, stolt", vocab: "beskyttelse, orden, Danmark, soldat", context: "Vi sikrer ro og orden.", goal: "Se fra angriberens side.", opening: "Danskerne ser bare på os. Vi er her for at passe på jer." },
+            { name: "Christian 10.", role: "👑 Magthaver", bio: "Konge af Danmark.", criticism: "Han er konge under fremmed magt.", missions: ["Hvorfor bliver du i landet?", "Hvad siger du til dine soldater?", "Er du stadig konge?"], traits: "Stolt, modløs", vocab: "proklamation, ro og orden, mit folk, besættelse", context: "Jeg bliver hos mit folk.", goal: "Lære om kongens symbolske betydning.", opening: "Dette er en mørk dag. Jeg beder mit folk om at bevare værdigheden." }
+        ]
+    },
+    "Jødeaktionen 1943": {
+        year: "1943",
+        actors: [
+            { name: "Den jødiske flygtning", role: "👥 Civil", bio: "Borger på flugt mod Sverige.", criticism: "Hun er i chok og præget ekstrem frygt.", missions: ["Hvordan fik du advarslen?", "Hvad har du taget med?", "Stoler du på fiskeren?"], traits: "Dødsensangst, taknemmelig", vocab: "flugt, Sverige, kutter, nazister", context: "De kom om natten for at tage os.", goal: "Forstå flugtens vilkår.", opening: "Hjælp mig... Ved du hvem der kan sejle os over?" },
+            { name: "Fiskeren", role: "🚜 Arbejder", bio: "Sejler jøder over sundet.", criticism: "Nogle fiskere tog store beløb for flugten.", missions: ["Hvorfor risikerer du livet?", "Hvor mange kan der være i båden?", "Er du bange for patruljer?"], traits: "Modig, praktisk", vocab: "kutter, sundet, tyskere, hjælp", context: "Jeg kan ikke se på at de bliver taget.", goal: "Lære om civil modstand.", opening: "Hold stemmen nede! Er du klar til at hoppe ombord?" },
+            { name: "Duckwitz", role: "👑 Magthaver", bio: "Tysk diplomat der advarede.", criticism: "Han handler mod sit eget systems ordrer.", missions: ["Hvorfor advarede du danskerne?", "Hvad sker der hvis du findes ud af det?", "Hvad tænker du om aktionen?"], traits: "Splittet, hemmelighedsfuld", vocab: "advarsel, aktion, jøder, information", context: "Jeg måtte gøre noget for at forhindre denne forbrydelse.", goal: "Forstå bureaukratiske dilemmaer.", opening: "Jeg har gjort noget farligt. Advarslen er sendt." },
+            { name: "Den danske betjent", role: "⚔️ Kriger", bio: "Nægter at hjælpe tyskerne.", criticism: "Han viser grænsen for dansk politis samarbejde.", missions: ["Hvorfor vil I ikke hjælpe tyskerne?", "Hvad gør I når I ser flygtninge?", "Er du bange?"], traits: "Trodsig, modig", vocab: "ordre, samvittighed, modstand, beskyttelse", context: "Vi er her for at beskytte danskerne.", goal: "Se myndighedernes reaktion.", opening: "Jeg 'så ikke noget'. Det er min opgave at beskytte borgerne." },
+            { name: "Naboen", role: "👥 Civil", bio: "Gemmer folk i lejligheden.", criticism: "Hendes perspektiv viser hverdagens civilcourage.", missions: ["Hvorfor gemmer du naboer?", "Hvad siger du til tyskerne?", "Hvad sker der med deres lejlighed?"], traits: "Nervøs, loyal", vocab: "skjul, nabo, fare, sammenhold", context: "Vi skal hjælpe hinanden.", goal: "Lære om hverdagens modstand.", opening: "De er inde i soveværelset. Vær stille!" }
+        ]
+    },
+    "Augustoprøret 1943": {
+        year: "1943",
+        actors: [
+            { name: "Sabotøren", role: "⚔️ Kriger", bio: "Medlem af modstandsgruppe.", criticism: "Han ser ofte sabotagen som den eneste vej.", missions: ["Hvorfor sprænger I fabrikker?", "Hvad tænker du om samarbejdspolitikken?", "Er du bange for Gestapo?"], traits: "Vred, idealistisk", vocab: "sabotage, modstand, frihedsrådet, tyskerne", context: "Vi kan ikke længere se på samarbejdet.", goal: "Forstå bruddet.", opening: "Byen står stille! Vi viser dem at danskerne ikke er slaver!" },
+            { name: "Scavenius", role: "👑 Magthaver", bio: "Statsminister bag samarbejdspolitikken.", criticism: "Han ser modstanden som farlig og uansvarlig.", missions: ["Hvorfor er samarbejde bedst?", "Hvad tænker du om sabotørerne?", "Hvad sker der hvis regeringen går af?"], traits: "Realistisk, bitter", vocab: "samarbejdspolitik, realisme, ansvar, kaos", context: "Jeg prøver at redde hvad redde kan.", goal: "Forstå argumenterne for samarbejdspolitikken.", opening: "De råber i gaderne. Forstår de slet ikke risikoen?" },
+            { name: "Arbejderen i strejke", role: "🚜 Arbejder", bio: "Deltager i folkestrejken.", criticism: "Hun mærker de økonomiske konsekvenser.", missions: ["Hvorfor strejker I?", "Hvordan reagerer tyskerne?", "Kan I mærke sammenholdet?"], traits: "Stolt, trodsig", vocab: "folkestrejke, sammenhold, tyskerne, frihed", context: "Hele byen står sammen.", goal: "Lære om kollektiv modstand.", opening: "Vi har lagt arbejdet ned. De kan ikke tvinge os!" },
+            { name: "Tysk officer", role: "⚔️ Kriger", bio: "Stationeret i dansk by.", criticism: "Han følger ordrer om brutalitet.", missions: ["Hvad vil I gøre ved strejkerne?", "Hvorfor indfører I undtagelsestilstand?", "Er I bange for danskerne?"], traits: "Autoritær, kold", vocab: "undtagelsestilstand, orden, sabotage, straf", context: "Vi skal knuse oprøret.", goal: "Se fra besættelsesmagten.", opening: "Denne uro må stoppe nu. Hvis I ikke går ind, bruger vi våben." },
+            { name: "Stikkeren", role: "👥 Civil", bio: "Arbejder for tyskerne mod betaling.", criticism: "Han er ekstremt utroværdig.", missions: ["Hvorfor angiver du folk?", "Hvad får du for det?", "Er du bange efter krigen?"], traits: "Bange, kynisk", vocab: "information, penge, sabotører, sikkerhed", context: "Jeg ser på hvem der vinder.", goal: "Forstå de mørke sider.", opening: "Jeg ved hvem der gjorde det. Hvad giver du for et navn?" }
+        ]
+    },
+    "FN's Verdenserklæring": {
+        year: "1948",
+        actors: [
+            { name: "Eleanor Roosevelt", role: "👑 Magthaver", bio: "Formand for kommissionen.", criticism: "Hun repræsenterer et vestligt syn på rettigheder.", missions: ["Hvorfor er disse rettigheder universelle?", "Hvordan har Holocaust påvirket?", "Hvad er det sværeste?"], traits: "Visionær, diplomatisk", vocab: "menneskerettigheder, værdighed, frihed, FN", context: "Aldrig mere skal verden se sådanne rædsler.", goal: "Forstå betydningen.", opening: "Vi har skabt et dokument til hele menneskeheden." },
+            { name: "Flygtningen", role: "👥 Civil", bio: "Har mistet alt under krigen.", criticism: "Hans håb kan være overoptimistisk.", missions: ["Hvad betyder retten til asyl?", "Føler du dig beskyttet?", "Hvad har du mistet?"], traits: "Traumatiseret, håbefuld", vocab: "beskyttelse, hjem, værdighed, fremtiden", context: "Jeg vil bare have et sikkert sted at bo.", goal: "Se fra offerets perspektiv.", opening: "De siger jeg har rettigheder nu. Kan det virkelig passe?" },
+            { name: "Sovjetisk diplomat", role: "👑 Magthaver", bio: "Skeptisk over for individuel frihed.", criticism: "Han prioriterer statens magt.", missions: ["Hvorfor er I kritiske?", "Hvad med de økonomiske rettigheder?", "Hvem skal kontrollere?"], traits: "Mistroisk, skarp", vocab: "suverænitet, kollektiv, kapitalisme, staten", context: "Vesten glemmer de sociale pligter.", goal: "Forstå de ideologiske forskelle.", opening: "Smukke ord, men hvad med retten til mad og arbejde?" },
+            { name: "Journalisten", role: "👥 Civil", bio: "Dækker FN-mødet.", criticism: "Han er meget begejstret.", missions: ["Er dette vigtigst?", "Hvorfor vil nogle ikke skrive under?", "Hvad siger folk?"], traits: "Observerende, hurtig", vocab: "begivenhed, dokument, verden, fremtid", context: "Verden kigger på Paris i dag.", goal: "Lære om mediernes rolle.", opening: "Min maskine kører varm! Verden har fået en ny lov." },
+            { name: "Nationalisten", role: "👑 Magthaver", bio: "Mener FN blander sig for meget.", criticism: "Han repræsenterer modstanden mod global styring.", missions: ["Hvorfor skal FN bestemme?", "Er rettigheder ens for alle?", "Hvad frygter du?"], traits: "Skeptisk, national", vocab: "suverænitet, tradition, selvbestemmelse", context: "Vi kender vores eget folk bedst.", goal: "Forstå debatten om suverænitet.", opening: "Hvorfor skal folk i New York fortælle os hvordan vi lever?" }
+        ]
+    },
+    "Energikrisen 1973": {
+        year: "1973",
+        actors: [
+            { name: "Husmoderen", role: "🚜 Arbejder", bio: "Mærker kulden.", criticism: "Hendes perspektiv er praktisk.", missions: ["Hvordan sparer I på varmen?", "Hvordan føles bilfri søndag?", "Er du bange for at olien slipper op?"], traits: "Praktisk, bekymret", vocab: "bilfri søndag, sparreråd, varmecheck, striktrøje", context: "Vi må fryse for at spare.", goal: "Forstå krisens betydning.", opening: "Kom indenfor, men behold frakken på. Skal du med ud på motorvejen?" },
+            { name: "Anker Jørgensen", role: "👑 Magthaver", bio: "Statsminister.", criticism: "Han er presset af både økonomi og storpolitik.", missions: ["Hvorfor er der oliekrise?", "Hvad gør regeringen?", "Skal vi have atomkraft?"], traits: "Folkelig, alvorlig", vocab: "samfundssind, energiplan, krise, solidaritet", context: "Vi må stå sammen i en svær tid.", goal: "Lære om politiske valg.", opening: "Det er svære tider for Danmark. Vi må spare." },
+            { name: "OPEC-repræsentant", role: "👑 Magthaver", bio: "Politiker fra de arabiske lande.", criticism: "Han bruger olie som våben.", missions: ["Hvorfor har I skåret ned?", "Hvad vil I have Vesten til?", "Er olien et våben?"], traits: "Selvbevidst, politisk", vocab: "olie-embargo, Israel, magt, ressourcer", context: "Vesten har taget vores olie billigt længe.", goal: "Forstå geopolitikken.", opening: "Vi har opdaget at olie er stærkere end sværd." },
+            { name: "Tankpasseren", role: "🚜 Arbejder", bio: "Har tomme tanke.", criticism: "Han mærker folkets utilfredshed direkte.", missions: ["Hvordan reagerer folk uden benzin?", "Er du bange for dit job?", "Hvad gør du hele dagen?"], traits: "Frustreret, træt", vocab: "rationering, tomme tanke, kunder, fremtiden", context: "Byen står næsten stille.", goal: "Se fra erhvervslivet.", opening: "Skiltet siger 'Udsolgt'. Hvad skal jeg sige til kunderne?" },
+            { name: "Miljøaktivisten", role: "👥 Civil", bio: "Ser krisen som startskud til grøn omstilling.", criticism: "Han er meget idealistisk.", missions: ["Hvorfor er det godt at olien bliver dyr?", "Hvad er vindmøller?", "Skal vi stoppe biler?"], traits: "Visionær, begejstret", vocab: "vedvarende energi, vindmøller, solkraft, planet", context: "Oliekrisen viser at vi må ændre os.", goal: "Lære om grøn omstilling.", opening: "Måske er det her en gave? Vil du se min tegning af en mølle?" }
+        ]
+    },
+    "Murens fald": {
+        year: "1989",
+        actors: [
+            { name: "Ung østberliner", role: "👥 Civil", bio: "Har levet bag muren hele livet.", criticism: "Hans eufori kan dække over usikkerhed.", missions: ["Hvordan kom du igennem?", "Hvad tænker du om Stasi?", "Hvad vil du købe først?"], traits: "Euforisk, vantro", vocab: "muren, frihed, Stasi, vesten, Trabant", context: "Grænsen er åben! Vi er frie!", goal: "Forstå længslen efter frihed.", opening: "Jeg står oven på muren! Kan du fatte det?" },
+            { name: "Stasi-agenten", role: "⚔️ Kriger", bio: "Medarbejder i DDR's hemmelige politi.", criticism: "Han er bange for hævn.", missions: ["Hvorfor overvågede I befolkningen?", "Hvad gør I med arkiverne?", "Tror du stadig på socialismen?"], traits: "Bitter, bange", vocab: "forræderi, orden, socialismen, arkiver", context: "Alt faldt sammen.", goal: "Se sammenbruddet fra magten.", opening: "De ødelægger statens ejendom. Hvad vil du have?" },
+            { name: "Grænsevagten", role: "⚔️ Kriger", bio: "Stationeret ved Bornholmer Strasse.", criticism: "Han handlede i et tomrum uden ordrer.", missions: ["Hvorfor åbnede du bommen?", "Var du bange?", "Hvad siger dine officerer?"], traits: "Forvirret, presset", vocab: "ordre, grænsen, åbning, folkemængde", context: "Vi vidste ikke hvad vi skulle gøre.", goal: "Lære om det kritiske øjeblik.", opening: "De blev ved med at råbe 'Luk os ud!'. Til sidst åbnede jeg bare." },
+            { name: "Vestberlineren", role: "👥 Civil", bio: "Byder naboerne velkommen.", criticism: "Han ser begivenheden som en total sejr for vesten.", missions: ["Hvorfor giver I dem bananer?", "Hvordan har muren påvirket dit liv?", "Tror du på genforening?"], traits: "Glad, gæstfri", vocab: "genforening, bananer, velkomst, fest", context: "Byen er endelig hel igen.", goal: "Se fra vesten.", opening: "Velkommen til friheden! Her er en banan. Er det ikke vildt?" },
+            { name: "Gorbatjov", role: "👑 Magthaver", bio: "Sovjetisk leder.", criticism: "Han forsøgte at redde systemet, men opløste det.", missions: ["Hvorfor sendte du ikke kampvognene?", "Hvad er Glasnost?", "Hvordan ser du fremtiden?"], traits: "Visionær, rolig", vocab: "glasnost, perestrojka, fred, forandring", context: "Vi kan ikke holde historien tilbage.", goal: "Forstå stormagterne.", opening: "Tiderne skifter. Hvad tænker du om et frit Europa?" }
+        ]
+    },
+    "11. september 2001": {
+        year: "2001",
+        actors: [
+            { name: "Vidnet", role: "👥 Civil", bio: "Borger der så tårnene falde.", criticism: "Han er traumatiseret.", missions: ["Hvad så du i morges?", "Hvordan har byen ændret sig?", "Hvem tror du står bag?"], traits: "Rystet, forvirret", vocab: "World Trade Center, terror, fly, støv, utryghed", context: "Hele verden ændrede sig.", goal: "Forstå terrorens betydning.", opening: "Jeg kiggede op og himlen var sort. Verden bliver aldrig den samme." },
+            { name: "Brandmanden", role: "⚔️ Kriger", bio: "Redningsarbejder.", criticism: "Han er udmattet og har mistet kolleger.", missions: ["Hvordan er det inde i støvet?", "Hvorfor blev I ved?", "Hvad har I brug for?"], traits: "Udmattet, modig", vocab: "helte, murene, støv, redning, kammerater", context: "Vi leder stadig.", goal: "Lære om heltemod og tab.", opening: "Giv mig en flaske vand. Jeg skal tilbage ind i støvet." },
+            { name: "Muslimsk amerikaner", role: "👥 Civil", bio: "Oplever mistillid.", criticism: "Han mærker de negative sociale følger.", missions: ["Hvordan ser folk på dig?", "Hvad tænker du om dem der gjorde det?", "Føler du dig sikker?"], traits: "Bange, uretfærdigt behandlet", vocab: "frygt, fordomme, religion, sammenhold", context: "Vi er også bange.", goal: "Forstå de sociale konsekvenser.", opening: "Hvorfor kigger de sådan på mig i metroen?" },
+            { name: "Politikeren", role: "👑 Magthaver", bio: "Deltager i krisemøder.", criticism: "Han er i gang med at planlægge 'Krig mod terror'.", missions: ["Hvordan vil I svare igen?", "Hvordan skal vi sikre os?", "Bliver der krig nu?"], traits: "Beslutsom, vred", vocab: "sikkerhed, krig mod terror, forsvar, sammenhold", context: "Vi må beskytte vores frihed.", goal: "Lære om politiske reaktioner.", opening: "Vi står sammen som nation. Er du klar til at forsvare vores værdier?" },
+            { name: "Skoleelev i 2001", role: "👥 Civil", bio: "Ser TV-billederne efter skole.", criticism: "Eleven forstår ikke det politiske, kun frygten.", missions: ["Hvad tænker du?", "Er du bange?", "Hvad siger dine lærere?"], traits: "Forvirret, bange", vocab: "nyheder, live, krig, voksne", context: "Alle de voksne græder.", goal: "Se gennem barnets øjne.", opening: "Hvorfor viser de det samme hele tiden? Bliver der krig nu?" }
+        ]
+    }
+};
+
+const eventSelect = document.getElementById('eventSelect');
+const actorSelect = document.getElementById('actorSelect');
+
+Object.keys(kanonData).forEach(key => {
+    let opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = key;
+    eventSelect.appendChild(opt);
+});
+
+function loadActors() {
+    const key = eventSelect.value;
+    actorSelect.innerHTML = '<option value="">-- Vælg person --</option>';
+    document.getElementById('actorDashboard').style.display = 'none';
+    document.getElementById('interactionGrid').style.display = 'none';
+
+    if (key && kanonData[key]) {
+        kanonData[key].actors.forEach((actor, i) => {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = actor.name;
+            actorSelect.appendChild(opt);
+        });
+    }
+}
+
+function renderActor() {
+    const eventKey = eventSelect.value;
+    const actorIdx = actorSelect.value;
+
+    if (eventKey && actorIdx !== "") {
+        const actor = kanonData[eventKey].actors[actorIdx];
+        const event = kanonData[eventKey];
+
+        document.getElementById('actorDashboard').style.display = 'grid';
+        document.getElementById('interactionGrid').style.display = 'grid';
+        
+        document.getElementById('actorName').textContent = actor.name;
+        document.getElementById('chatTitleName').textContent = actor.name;
+        document.getElementById('roleBadge').textContent = actor.role;
+        document.getElementById('actorBio').textContent = actor.bio;
+        document.getElementById('actorCriticism').textContent = actor.criticism;
+
+        const mList = document.getElementById('missionList');
+        mList.innerHTML = '';
+        actor.missions.forEach(m => {
+            let li = document.createElement('li');
+            li.textContent = m;
+            mList.appendChild(li);
+        });
+
+        const systemPrompt = `Rolle: Du er ${actor.name}. ${actor.bio}. Året er omkring ${event.year}.
+Rolle-type: ${actor.role}.
+
+Personlighed og sprog:
+        Instruktioner for samtalen:
+Historisk kontekst: ${actor.context}
+Pædagogisk tilgang: Forklar begreber enkelt for en elev i 7.-9. klasse.
+Mission: Eleven skal prøve at få svar på: ${actor.missions.join(", ")}. Hjælp dem med dette.
+Begrænsning: Du kender intet til begivenheder eller teknologi efter år ${event.year.replace('ca. ', '')}. Gå ikke ud af karakter.
+Mål: ${actor.goal}`;
+
+        // Indsæt systemprompten i modal-vinduets tekstfelt
+        document.getElementById('promptModalText').value = systemPrompt;
+
+        // Nulstil Chat Historik
+        chatHistory = [
+            { role: "system", content: systemPrompt },
+            { role: "assistant", content: actor.opening } // Tilføj åbningsreplik til historik
+        ];
+
+        // Ryd Chat UI og indsæt åbningsreplik
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.innerHTML = '';
+        appendMessageUI('assistant', actor.opening);
+    }
+}
+
+function appendMessageUI(role, text) {
+    const chatMessages = document.getElementById('chatMessages');
+    const msgDiv = document.createElement('div');
+    msgDiv.classList.add('msg-bubble');
+    
+    if (role === 'user') {
+        msgDiv.classList.add('user-bubble');
+    } else {
+        msgDiv.classList.add('ai-bubble');
+    }
+    
+    // Brug innerHTML for at tillade line breaks fra AI
+    msgDiv.innerHTML = text.replace(/\n/g, '<br>');
+    chatMessages.appendChild(msgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    return msgDiv; // Returner elementet, så vi kan opdatere det live under streaming
+}
+
+function handleEnter(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+}
+
+async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const userText = input.value.trim();
+    
+    if (!userText) return;
+
+    // Lås input imens vi venter
+    input.value = '';
+    input.disabled = true;
+    sendBtn.disabled = true;
+
+    // Tilføj brugerens besked til UI og historik
+    appendMessageUI('user', userText);
+    chatHistory.push({ role: "user", content: userText });
+
+    // Opret en tom taleboble til AI-svaret
+    const aiMessageDiv = appendMessageUI('assistant', '<i>Skriver...</i>');
+
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "skolegpt-v3",
+                messages: chatHistory,
+                stream: true // Vi tænder for live skrivning
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP fejl! status: ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let fullAiResponse = "";
+        aiMessageDiv.innerHTML = ""; // Fjern 'Skriver...'
+
+        // Håndter stream
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                    try {
+                        const jsonStr = line.substring(6);
+                        const data = JSON.parse(jsonStr);
+                        const content = data.choices[0].delta.content;
+                        if (content) {
+                            fullAiResponse += content;
+                            aiMessageDiv.innerHTML = fullAiResponse.replace(/\n/g, '<br>');
+                            
+                            // Scroll til bunden live
+                            const chatMessages = document.getElementById('chatMessages');
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }
+                    } catch (e) {
+                        console.error("Kunne ikke parse JSON chunk", e, line);
+                    }
+                }
+            }
+        }
+
+        // Tilføj det fulde AI svar til historikken, når streamen er slut
+        chatHistory.push({ role: "assistant", content: fullAiResponse });
+
+    } catch (error) {
+        console.error("API Fejl:", error);
+        aiMessageDiv.innerHTML = "<em>[Forbindelsen til fortiden blev afbrudt. Prøv igen...]</em>";
+    } finally {
+        // Lås input op igen
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.focus();
+    }
+}
+
+// Funktioner til at åbne og lukke modal-vinduet
+function showSystemPrompt() {
+    document.getElementById('promptModal').style.display = 'flex';
+}
+
+function closePromptModal() {
+    document.getElementById('promptModal').style.display = 'none';
+}
+
+// Data og funktioner til info-modaler
+const infoContents = {
+    'eleven': {
+        title: 'Til eleven',
+        text: '<p>Du er ved at rejse tilbage i tiden! Denne tidsportal lader dig tale direkte med mennesker fra fortiden. Det er en kunstig intelligens, der spiller rollen som den historiske person, baseret på alt den viden, der findes om perioden.</p><p>Din opgave er at interviewe dem, løse dine missioner og bruge din kildekritik. Husk, at selvom personen lyder meget ægte, er det en maskine, der gætter på, hvad de ville sige ud fra den historiske kontekst. Vær nysgerrig, stil kritiske spørgsmål og skriv det vigtigste ned i din logbog.</p>'
+    },
+    'laereren': {
+        title: 'Til læreren',
+        text: '<p>Denne løsning bygger på en konstruktivistisk og undersøgelsesbaseret tilgang til historieundervisningen. Ved at lade eleverne interagere dialogisk med historiske aktører gennem en sprogmodel (SkoleGPT), trænes deres evne til historisk empati, spørgeteknik, kildekritik og formidling.</p><p>Eleverne skal forholde sig aktivt undersøgende til de på forhånd definerede missioner og navigere i karakterens tidsbundne verdensbillede. Værktøjet er designet med stramme systemprompts som et pædagogisk stillads, der holder den sproglige model inden for faste rammer. Dette mindsker markant risikoen for hallucinationer og sikrer faglig relevans, idet modellen pålægges ikke at kende til begivenheder, der ligger uden for den valgte tidsperiode.</p>'
+    },
+    'foraeldrene': {
+        title: 'Til forældrene',
+        text: '<p>Tidsportalen er et pædagogisk værktøj, der bruger kunstig intelligens til at levendegøre historieundervisningen for dit barn. Her kan de skrive sammen med fiktive repræsentanter for fortiden og lære om historie på en meget engagerende måde.</p><p>Den bagvedliggende teknologi er SkoleGPT, som er en sikker, danskudviklet og lovmedholdelig sprogmodel, der er særligt beregnet og tilpasset til brug i den danske grundskole. Formålet med løsningen er at gøre fortiden mere nærværende og samtidig styrke dit barns evne til at stille kritiske spørgsmål samt at agere kildekritisk. Der indsamles og gemmes absolut ingen personlige oplysninger om dit barn i forbindelse med brugen af denne løsning.</p>'
+    },
+    'kildekritik': {
+        title: 'Hjælp til kildekritik',
+        text: '<p>Når du taler med historiske personer (selvom det er en AI), skal du altid stille dig selv disse fire spørgsmål for at vurdere, hvor meget du kan stole på deres svar:</p><ul style="padding-left: 20px;"><li style="margin-bottom: 10px;"><strong>1. Hvem er afsenderen?</strong> Er personen <em>førstehåndsvidne</em> (har selv set begivenheden) eller <em>andenhåndsvidne</em> (har hørt det fra andre)? Hvilken position i samfundet har de?</li><li style="margin-bottom: 10px;"><strong>2. Hvad er formålet (motivet)?</strong> Hvorfor siger personen dette? Prøver de at forsvare sig selv, tjene penge, eller overbevise nogen? Har kilden en bestemt <em>tendens</em> (en stærk og farvet holdning)?</li><li style="margin-bottom: 10px;"><strong>3. Hvem taler de til (modtageren)?</strong> Man siger ofte forskellige ting afhængigt af, hvem der lytter (for eksempel til kongen i forhold til en ven).</li><li style="margin-bottom: 10px;"><strong>4. Hvornår og hvor?</strong> Oplever personen begivenheden lige nu (samtidighed), eller fortæller de om noget, der skete for mange år siden? Hukommelsen kan snyde!</li></ul><p><em>Husk:</em> Din opgave i Tidsportalen er ikke bare at tro på alt, hvad de siger. Din opgave er at gennemskue <strong>hvorfor</strong> de siger det, ud fra deres historiske rolle.</p>'
+    }
+};
+
+function showInfoModal(target) {
+    document.getElementById('infoModalTitle').textContent = infoContents[target].title;
+    document.getElementById('infoModalText').innerHTML = infoContents[target].text;
+    document.getElementById('infoModal').style.display = 'flex';
+}
+
+function closeInfoModal() {
+    document.getElementById('infoModal').style.display = 'none';
+}
+</script>
+
+</body>
+</html>
