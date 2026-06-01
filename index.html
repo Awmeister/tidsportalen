@@ -48,6 +48,34 @@
             position: relative;
         }
 
+        .dyslexia-btn {
+            position: absolute;
+            top: -10px;
+            right: 0;
+            background: #5d4037;
+            font-size: 0.85em;
+            padding: 8px 15px;
+            border-radius: 4px;
+        }
+
+        .dyslexia-btn:hover {
+            background: #3e2a24;
+        }
+
+        /* Ordblinde-venlig tilstand tvinger en simpel, bred font ned over hele siden */
+        .dyslexia-mode, .dyslexia-mode * {
+            font-family: 'Arial', 'Helvetica', sans-serif !important;
+            letter-spacing: 0.03em !important;
+        }
+
+        @media (max-width: 768px) {
+            .dyslexia-btn {
+                position: static;
+                display: inline-block;
+                margin-bottom: 15px;
+            }
+        }
+
         h1 { font-family: 'Lora', serif; font-size: 3em; color: var(--seal-red); margin: 0; }
         .subtitle { font-style: italic; font-size: 1.2em; color: #5d4037; }
 
@@ -379,6 +407,7 @@
 
 <div class="archive-station">
     <header>
+        <button id="dyslexiaBtn" class="dyslexia-btn" onclick="toggleDyslexiaMode()">Ordblinde-venlig tekst</button>
         <h1>Tidsportalen</h1>
         <p class="subtitle">Mød fortidens vidner, løs din mission og dokumentér din rejse.</p>
     </header>
@@ -509,11 +538,26 @@
 </div>
 
 <script>
+// API Opsætning
 const API_URL = "https://begrebsforklarer-proxy.awmeister.workers.dev/v1/chat/completions";
 const API_KEY = "sk-bv73cufkhv7wt5t7zf6";
 let chatHistory = [];
 let isDebateMode = false;
+let isDyslexiaMode = false;
 
+function toggleDyslexiaMode() {
+    isDyslexiaMode = !isDyslexiaMode;
+    const btn = document.getElementById('dyslexiaBtn');
+    if (isDyslexiaMode) {
+        document.body.classList.add('dyslexia-mode');
+        btn.textContent = "Slå ordblinde-venlig tekst fra";
+    } else {
+        document.body.classList.remove('dyslexia-mode');
+        btn.textContent = "Ordblinde-venlig tekst";
+    }
+}
+
+// Generel Hemmeligheds-instruks tilknyttet alle
 const genericSecret = "Hemmelighed (Easter Egg): Du bærer på en dyb tvivl eller hemmelighed omkring dit liv, som du absolut KUN må afsløre, hvis eleven spørger meget empatisk ind til din dybeste frygt, dine drømme eller hvis du lyver. Ellers hold det hemmeligt!";
 
 const kanonData = {
@@ -812,6 +856,9 @@ Instruktioner for samtalen:
 Historisk kontekst: ${actor1.context}
 Pædagogisk tilgang: Du taler med en elev i ${gradeLevel}. ${pedagogyGuidance}
 Længde på svar: ${lengthGuidance}
+Formatering og stil: 
+- Brug ALDRIG regibemærkninger, handlinger eller følelser i tekst (som f.eks. *ser træt ud* eller *sukker*).
+- Indled ALDRIG dine svar med tiltaleformer som "Min dreng...", "Barn...", "Unge ven..." eller lignende. Svar direkte på det der bliver spurgt om fra første ord.
 Mission: Eleven skal prøve at få svar på: ${actor1.missions.join(", ")}. Hjælp dem med dette.
 ${genericSecret}
 Begrænsning: Du kender intet til begivenheder eller teknologi efter år ${event.year.replace('ca. ', '')}. Gå ikke ud af karakter.
@@ -848,6 +895,9 @@ ${actor2.name}: ${actor2.bio} Egenskaber: ${actor2.traits}.
 Instruktioner for samtalen:
 Pædagogisk tilgang: Du taler med en elev i ${gradeLevel}. ${pedagogyGuidance}
 Længde på svar: ${lengthGuidance}
+Formatering og stil: 
+- Brug ALDRIG regibemærkninger, handlinger eller følelser i tekst (som f.eks. *ser vred ud* eller *peger*). Kun direkte tale.
+- Indled ALDRIG jeres svar med tiltaleformer til eleven som "Min dreng...", "Barn...", "Unge ven..." eller lignende. Svar og debatér direkte.
 ${genericSecret}
 I skal debattere den historiske begivenhed ud fra jeres meget forskellige synspunkter.`;
 
