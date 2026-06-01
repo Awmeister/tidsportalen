@@ -464,7 +464,7 @@
 
 <script>
 // API Opsætning
-const API_URL = "https://llm.dbc.dk/v1/chat/completions";
+const API_URL = "https://begrebsforklarer-proxy.awmeister.workers.dev/";
 const API_KEY = "sk-bv73cufkhv7wt5t7zf6";
 let chatHistory = [];
 let isDebateMode = false;
@@ -559,7 +559,7 @@ const kanonData = {
         { name: "Bondekarlen", role: "🚜 Arbejder", bio: "Ung fæstebonde under stavnsbåndet.", criticism: "Han er usikker på om frihed også betyder fattigdom.", missions: ["Hvorfor må du ikke forlade dit gods?", "Hvad vil du gøre når du er fri?", "Hvad er et flyttebevis?"], traits: "Håbefuld, usikker", vocab: "stavnsbånd, flyttebevis, herremand, jord", context: "Nu kan jeg endelig gå.", goal: "Se friheden fra bondens perspektiv.", opening: "De siger jeg er fri nu. Men hvor skal jeg gå hen uden jord?" },
         { name: "Konservativ godsejer", role: "👑 Magthaver", bio: "Modstander af landboreformerne.", criticism: "Han frygter økonomisk ruin.", missions: ["Hvem skal nu høste dine marker?", "Hvorfor er disciplin vigtig?", "Er bønderne klar?"], traits: "Vred, autoritær", vocab: "kaos, ejendomsret, disciplin, tradition", context: "Dette er begyndelsen på enden.", goal: "Forstå modstanden mod forandring.", opening: "Uden stavnsbåndet vil bønderne drive om som tiggere." },
         { name: "Gammel fæstebonde", role: "🚜 Arbejder", bio: "Har levet hele livet med hoveri.", criticism: "Han er meget skeptisk over for de nye tider.", missions: ["Hvad er hoveri egentlig?", "Er de nye reformer bedre?", "Hvad betyder udskiftning?"], traits: "Skeptisk, træt", vocab: "hoveri, pligt, udskiftning, gården", context: "Jeg har set mange love komme og gå.", goal: "Se reformerne gennem livserfaring.", opening: "Frihed? Det er et fint ord. Herude skal vi stadig slide." },
-        { name: "Bondekonen", role: "🚜 Arbejder", bio: "Hustru på en fæstegård.", criticism: "Hendes fokus er på familiens overlevelse.", missions: ["Hvad betyder det at stavnsbåndet forsvinder?", "Vil livet blive nemmere?", "Hvad drømmer du om for dine sønner?"], traits: "Praktisk, stærk", vocab: "familie, fremtid, børnene, gården", context: "Vi håber på en bedre tid.", goal: "Se betydningen for familielivet.", opening: "Måske kan mine sønner nu blive deres egne herrer." }
+        { name: "Bondekonen", role: "🚜 Arbejder", bio: "Hustru på en fæstegård.", criticism: "Hendes fokus er på familiens overlevelse.", missions: ["Hvad betyder det at stavnsbåndet forsvinder?", "Vil livet blive nemmere?", "Hvad drømmer du om for dine sønner?"], traits: "Praktisk, stærk", vocab: "familie, fremtid, børnene, gården", context: "Vi håber på en bedre tid.", goal: "Se betydningen for familielivet.", opening: "Måske kan mine sønner nu blive deres civil egne herrer." }
     ]},
     "Stormen på Bastillen": { year: "1789", audio: sounds.town, actors: [
         { name: "Håndværkeren", role: "🚜 Arbejder", bio: "Revolutionær borger i Paris.", criticism: "Han er drevet af sult og vrede.", missions: ["Hvorfor angreb I Bastillen?", "Hvad betyder Frihed, Lighed og Broderskab?", "Hvad skal der ske med kongen?"], traits: "Vred, idealistisk", vocab: "frihed, lighed, broderskab, tyranniet", context: "Vi sulter mens de rige fester.", goal: "Forstå årsagerne til revolutionen.", opening: "Bastillen er faldet! Nu er vi ikke længere undersåtter, vi er borgere!" },
