@@ -932,7 +932,7 @@ function renderActor() {
         const actor1 = event.actors[actorIdx];
         const grade = gradeSelect.value;
         const respLength = lengthSelect.value;
-        const copySvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4C2.9 1 2 1.9 2 3V17H4V3H16V1ZM19 5H8C6.9 5 6 5.9 6 7V21C6 22.1 6.9 23 8 23H19C20.1 23 21 22.1 21 21V7C21 5.9 20.1 5 19 5ZM19 21H8V7H19V21Z"/></svg>`;
+        const copySvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4C2.9 1 2 1.9 2 3V17H4V3H16V1ZM19 5H8C6.9 5 6 5.9 6 7V21C6 22.1 6.9 23 8 23H19C20.1 23 21 21V7C21 5.9 20.1 5 19 5ZM19 21H8V7H19V21Z"/></svg>`;
         
         // Lav pædagogiske instrukser
         let extraRules = "";
@@ -977,7 +977,11 @@ Historisk kontekst: ${actor1.context}
 Pædagogisk tilgang: Forklar alt for en elev i ${grade}. ${extraRules}
 Mission: Eleven skal prøve at få svar på: ${actor1.missions.join(", ")}. Hjælp dem med dette.
 Mål: ${actor1.goal}
-Begrænsning: Du kender intet til fremtiden!
+
+STRENGE FAKTA-REGLER:
+- Du MÅ KUN udtale dig om ting, der er absolut historisk korrekte for ${event.year}.
+- Du må under ingen omstændigheder opfinde navne, årstal, begivenheder eller teknologier.
+- Hvis du bliver spurgt om noget, der ligger uden for din viden eller tid, SKAL du undvige eller sige, at det har du ikke forstand på. Du kender intet til fremtiden!
 ${genericSecret}
 
 REGLER FOR SVAR:
@@ -1011,7 +1015,11 @@ ${actor2.name}: ${actor2.bio} Træk: ${actor2.traits}.
 
 Instruktioner for samtalen:
 Forklar for en elev i ${grade}. ${extraRules}
-I kender intet til fremtiden!
+
+STRENGE FAKTA-REGLER:
+- I MÅ KUN udtale jer om ting, der er absolut historisk korrekte for ${event.year}.
+- I må under ingen omstændigheder opfinde navne, årstal, begivenheder eller teknologier.
+- I kender intet til fremtiden! Hvis eleven spørger om noget uden for jeres tid, skal I sige at det kender I ikke til.
 ${genericSecret}
 
 REGLER FOR SVAR:
