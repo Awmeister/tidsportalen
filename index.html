@@ -242,15 +242,6 @@
         .user-bubble { background: rgba(139, 0, 0, 0.1); border: 1px solid var(--seal-red); align-self: flex-end; color: var(--seal-red); }
         .ai-bubble { background: rgba(255, 255, 255, 0.9); border: 1px solid var(--border-gold); align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-        .helper-qs {
-            display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-gold);
-        }
-        .helper-q-btn {
-            background: #e9e0d2; border: 1px solid var(--border-gold); color: var(--ink);
-            padding: 6px 12px; border-radius: 15px; font-size: 0.8em; font-family: var(--main-font); cursor: pointer; transition: 0.2s;
-        }
-        .helper-q-btn:hover { background: var(--border-gold); color: white; }
-
         .chat-input-area { display: flex; gap: 10px; flex-wrap: wrap; }
         .chat-input-area input {
             flex-grow: 1; padding: 15px; font-family: var(--main-font); font-size: 1.2em;
@@ -430,18 +421,18 @@
                 <!-- Chatbeskeder vises her -->
             </div>
             <div class="chat-input-area">
-                <input type="text" id="chatInput" placeholder="Stil dit spørgsmål her..." onkeypress="handleEnter(event)">
-                <button id="sendBtn" onclick="sendMessage()">Spørg</button>
-            </div>
+            <input type="text" id="chatInput" placeholder="Stil dit spørgsmål her..." onkeypress="handleEnter(event)">
+            <button id="sendBtn" onclick="sendMessage()">Spørg</button>
         </div>
-        <div>
-            <div class="box-title">Min logbog</div>
-            <textarea id="logbook" placeholder="Skriv dine noter her... Hvad lærte du af dit vidne? Husk at tænke på kildekritikken!"></textarea>
-            <div class="btn-group">
-                <button style="background:var(--teacher-green);" onclick="evaluateLogbook()">Lærer-assistent (feedback)</button>
-                <button class="btn-print" style="background:#5d4037;" onclick="printLogbook()">Print logbog</button>
-                <button style="background:#8b6508;" onclick="showInfoModal('kildekritik')">Hjælp til kildekritik</button>
-            </div>
+    </div>
+    <div>
+        <div class="box-title">Min logbog</div>
+        <textarea id="logbook" placeholder="Skriv dine noter her... Hvad lærte du af dit vidne? Husk at tænke på kildekritikken!"></textarea>
+        <div class="btn-group">
+            <button style="background:var(--teacher-green);" onclick="evaluateLogbook()">Lærer-assistent (feedback)</button>
+            <button class="btn-print" style="background:#5d4037;" onclick="printLogbook()">Print logbog</button>
+            <button style="background:#8b6508;" onclick="showInfoModal('kildekritik')">Hjælp til kildekritik</button>
+            <button style="background:#2c3e50;" onclick="showInfoModal('faq')">FAQ & Funktioner</button>
         </div>
     </div>
 </div>
@@ -782,7 +773,41 @@ const actorSelect2 = document.getElementById('actorSelect2');
 const gradeSelect = document.getElementById('gradeSelect');
 const lengthSelect = document.getElementById('lengthSelect');
 
+// --- NYT: Direkte opslag i Wikipedia API for at sikre 100% fungerende billeder ---
+const wikiPages = {
+    "Ertebøllekulturen": "Ertebøllekulturen",
+    "Tutankhamon": "Tutankhamon",
+    "Kejser Augustus": "Augustus",
+    "Jellingstenen": "Jellingstenene",
+    "Absalon": "Absalon",
+    "Kalmarunionen": "Kalmarunionen",
+    "Columbus": "Christoffer_Columbus",
+    "Reformationen": "Reformationen",
+    "Christian 4.": "Christian_4.",
+    "Den Westfalske Fred": "Den_westfalske_fred",
+    "Statskuppet 1660": "Statskuppet_i_1660",
+    "Stavnsbåndets ophævelse": "Stavnsbåndet",
+    "Stormen på Bastillen": "Stormen_på_Bastillen",
+    "5. juni 1849": "Grundloven",
+    "Slaget ved Dybbøl": "Slaget_ved_Dybbøl",
+    "Slaget på Fælleden": "Slaget_på_Fælleden",
+    "Systemskiftet 1901": "Systemskiftet_1901",
+    "Kvinders valgret": "Kvinders_valgret",
+    "Genforeningen 1920": "Genforeningen_i_1920",
+    "Kanslergadeforliget": "Kanslergadeforliget",
+    "9. april 1940": "Invasionen_af_Danmark_i_1940",
+    "Jødeaktionen 1943": "Redningen_af_de_danske_jøder",
+    "Augustoprøret 1943": "Augustoprøret",
+    "FN's Verdenserklæring": "FN's_Verdenserklæring_om_Menneskerettighederne",
+    "Energikrisen 1973": "Oliekrisen_1973",
+    "Murens fald": "Berlinmuren",
+    "11. september 2001": "Terrorangrebet_den_11._september_2001"
+};
+
 Object.keys(kanonData).forEach(key => {
+    // Tilknyt den rigtige Wikipedia artikel til begivenheden
+    if(wikiPages[key]) kanonData[key].wikiPage = wikiPages[key];
+    
     let opt = document.createElement('option');
     opt.value = key;
     opt.textContent = key;
@@ -805,10 +830,31 @@ function loadActors() {
     if (key && kanonData[key]) {
         // Opdater kilde/kort info
         const evt = kanonData[key];
-        document.getElementById('eventImage').src = evt.image;
+        const imgElement = document.getElementById('eventImage');
+        
+        // Sæt midlertidig loading tekst
+        imgElement.src = 'https://placehold.co/400x200/e9e0d2/5d4037?text=Henter+billede...';
         document.getElementById('eventCaption').textContent = evt.imageCaption;
         document.getElementById('eventYear').textContent = evt.year;
         document.getElementById('eventLocation').textContent = evt.location;
+
+        // Hent billede dynamisk fra Wikipedia
+        if(evt.wikiPage) {
+            fetch(`https://da.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(evt.wikiPage)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.thumbnail && data.thumbnail.source) {
+                        imgElement.src = data.thumbnail.source;
+                    } else {
+                        imgElement.src = 'https://placehold.co/400x200/e9e0d2/5d4037?text=Intet+billede+fundet';
+                    }
+                })
+                .catch(() => {
+                    imgElement.src = 'https://placehold.co/400x200/e9e0d2/5d4037?text=Kilde+ikke+fundet';
+                });
+        } else {
+            imgElement.src = evt.image || 'https://placehold.co/400x200/e9e0d2/5d4037?text=Kilde+ikke+fundet';
+        }
 
         evt.actors.forEach((actor, i) => {
             let opt = document.createElement('option'); opt.value = i; opt.textContent = actor.name;
@@ -865,6 +911,7 @@ function renderActor() {
         const actor1 = event.actors[actorIdx];
         const grade = gradeSelect.value;
         const respLength = lengthSelect.value;
+        const copySvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4C2.9 1 2 1.9 2 3V17H4V3H16V1ZM19 5H8C6.9 5 6 5.9 6 7V21C6 22.1 6.9 23 8 23H19C20.1 23 21 22.1 21 21V7C21 5.9 20.1 5 19 5ZM19 21H8V7H19V21Z"/></svg>`;
         
         // Lav pædagogiske instrukser
         let extraRules = "";
@@ -893,7 +940,7 @@ function renderActor() {
             actor1.missions.forEach((m, i) => { 
                 totalMissions++;
                 let li = document.createElement('li'); li.className = 'mission-item';
-                li.innerHTML = `<span class="mission-text">${m}</span> <button class="mission-btn" id="mBtn_${i}" onclick="copyMission('mBtn_${i}', \`${m}\`)">📋</button>`;
+                li.innerHTML = `<span class="mission-text">${m}</span> <button class="mission-btn" id="mBtn_${i}" onclick="copyMission('mBtn_${i}', \`${m}\`)">${copySvg}</button>`;
                 mList.appendChild(li); 
             });
 
@@ -915,9 +962,7 @@ ${genericSecret}
 REGLER FOR SVAR:
 1. Skriv direkte til eleven uden teatralske regibemærkninger (som *sukker*, *griner*). Svar naturligt.
 2. Undgå klicheer og nedladende tiltaler som "Min dreng", "Lille ven", "Rejsende".
-3. Svaret SKAL være ${respLength}.
-4. I bunden af DIT SVAR SKAL DU skrive præcis to opfølgende spørgsmål eleven kan stille, adskilt af | efter koden ---HJÆLP---.
-F.eks: [dit svar] ---HJÆLP--- Spørgsmål 1? | Spørgsmål 2?`;
+3. Svaret SKAL være ${respLength}.`;
 
             combinedOpening = actor1.opening;
 
@@ -932,7 +977,7 @@ F.eks: [dit svar] ---HJÆLP--- Spørgsmål 1? | Spørgsmål 2?`;
             [...actor1.missions, ...actor2.missions].forEach((m, i) => { 
                 totalMissions++;
                 let li = document.createElement('li'); li.className = 'mission-item';
-                li.innerHTML = `<span class="mission-text">${m}</span> <button class="mission-btn" id="mBtn_d_${i}" onclick="copyMission('mBtn_d_${i}', \`${m}\`)">📋</button>`;
+                li.innerHTML = `<span class="mission-text">${m}</span> <button class="mission-btn" id="mBtn_d_${i}" onclick="copyMission('mBtn_d_${i}', \`${m}\`)">${copySvg}</button>`;
                 mList.appendChild(li); 
             });
 
@@ -951,9 +996,7 @@ ${genericSecret}
 REGLER FOR SVAR:
 1. Skriv uden teatralske regibemærkninger (som *sukker*).
 2. Undgå kliche-tiltaler ("Min dreng").
-3. Svaret SKAL være ${respLength}.
-4. I bunden af DIT SVAR SKAL DU skrive præcis to opfølgende spørgsmål eleven kan stille, adskilt af | efter koden ---HJÆLP---.
-F.eks: [dit svar] ---HJÆLP--- Spørgsmål 1? | Spørgsmål 2?`;
+3. Svaret SKAL være ${respLength}.`;
 
             combinedOpening = `**${actor1.name}:** ${actor1.opening}\n\n**${actor2.name}:** ${actor2.opening}`;
         }
@@ -972,12 +1015,6 @@ F.eks: [dit svar] ---HJÆLP--- Spørgsmål 1? | Spørgsmål 2?`;
     }
 }
 
-function handleHelperClick(questionText) {
-    const input = document.getElementById('chatInput');
-    input.value = questionText;
-    sendMessage();
-}
-
 function appendMessageUI(role, text) {
     const chatMessages = document.getElementById('chatMessages');
     const msgDiv = document.createElement('div');
@@ -990,24 +1027,8 @@ function appendMessageUI(role, text) {
     } else {
         msgDiv.classList.add('ai-bubble');
         
-        let displayContent = text;
-        let helperButtonsHTML = "";
-
-        if (text.includes('---HJÆLP---')) {
-            let parts = text.split('---HJÆLP---');
-            displayContent = parts[0].trim();
-            let qs = parts[1].split('|').map(q => q.trim()).filter(q => q.length > 0);
-            if(qs.length > 0) {
-                helperButtonsHTML = `<div class="helper-qs"><span>Spørg om: </span>`;
-                qs.forEach(q => {
-                    helperButtonsHTML += `<button class="helper-q-btn" onclick="handleHelperClick('${q.replace(/'/g, "\\'")}')">${q}</button>`;
-                });
-                helperButtonsHTML += `</div>`;
-            }
-        }
-
-        let formattedText = displayContent.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        msgDiv.innerHTML = formattedText + helperButtonsHTML;
+        let formattedText = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        msgDiv.innerHTML = formattedText;
         chatMessages.appendChild(msgDiv);
     }
     
@@ -1067,11 +1088,7 @@ async function sendMessage() {
                             const content = data?.choices?.[0]?.delta?.content || "";
                             fullAiResponse += content;
                             
-                            // Visuel skjuling af Hjælpestreng under streaming
-                            let displayStr = fullAiResponse;
-                            if(displayStr.includes('---HJÆLP---')) displayStr = displayStr.split('---HJÆLP---')[0];
-                            
-                            msgDiv.innerHTML = displayStr.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                            msgDiv.innerHTML = fullAiResponse.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                             document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
                         } catch (e) { /* ignore split chunks */ }
                     }
@@ -1199,7 +1216,11 @@ const infoContents = {
     'eleven': { title: 'Til eleven', text: '<p>Du er ved at rejse tilbage i tiden! Denne tidsportal lader dig tale direkte med mennesker fra fortiden. Det er en kunstig intelligens, der spiller rollen.</p><p>Din opgave er at interviewe dem, løse dine missioner og bruge din kildekritik. Vær nysgerrig, og skriv det vigtigste ned i din logbog.</p>' },
     'laereren': { title: 'Til læreren', text: '<p>Denne løsning bygger på en konstruktivistisk og undersøgelsesbaseret tilgang. Eleverne træner evnen til historisk empati, spørgeteknik og kildekritik.</p><p>Værktøjet er designet med stramme systemprompts som et pædagogisk stillads, der tilpasser sig elevens klassetrin og minimerer hallucinationer.</p>' },
     'foraeldrene': { title: 'Til forældrene', text: '<p>Tidsportalen bruger AI (SkoleGPT) til at levendegøre historien for dit barn på en sikker og lovmedholdelig måde, tilpasset den danske grundskole.</p><p>Der indsamles absolut ingen personlige oplysninger om dit barn ved brug.</p>' },
-    'kildekritik': { title: 'Hjælp til kildekritik', text: '<p>Stil altid dig selv disse spørgsmål:</p><ul><li><strong>1. Hvem er afsenderen?</strong> (Første- eller andenhåndsvidne?)</li><li><strong>2. Hvad er formålet?</strong> (Motiv og tendens)</li><li><strong>3. Hvem taler de til?</strong></li><li><strong>4. Hvornår og hvor?</strong> (Samtidighed)</li></ul>' }
+    'kildekritik': { title: 'Hjælp til kildekritik', text: '<p>Stil altid dig selv disse spørgsmål:</p><ul><li><strong>1. Hvem er afsenderen?</strong> (Første- eller andenhåndsvidne?)</li><li><strong>2. Hvad er formålet?</strong> (Motiv og tendens)</li><li><strong>3. Hvem taler de til?</strong></li><li><strong>4. Hvornår og hvor?</strong> (Samtidighed)</li></ul>' },
+    'faq': { 
+        title: 'FAQ & Funktioner', 
+        text: '<h3>Tanken bag portalen</h3><p>Målet er at gøre historieundervisningen nærværende. Ved at lade eleverne interviewe fortiden trænes <em>historisk empati</em>, og ved at skulle gennemskue aktørernes motiver og bias trænes <em>kildekritik</em> i praksis.</p><h3>Særlige funktioner</h3><ul style="padding-left: 20px; line-height: 1.8;"><li><strong>Debat-tilstand:</strong> Sæt to historiske aktører (fx biskop Absalon og en vendisk kriger) overfor hinanden for at tydeliggøre kontraster og tendens.</li><li><strong>Indbygget Ordbog:</strong> Dobbeltklik på et svært ord i chatten, og få det forklaret lynhurtigt.</li><li><strong>Lærer-assistenten:</strong> Giver en hurtig og formativ vurdering af logbogens faglige kildekritik.</li><li><strong>Adaptivt niveau:</strong> AI\'en justerer automatisk ordvalg og LIX-tal alt efter det valgte klassetrin (fx 4. klasse vs. 9. klasse).</li><li><strong>Skjulte hemmeligheder:</strong> Hver karakter bærer på en hemmelighed, der kun afsløres, hvis eleven spørger særligt klogt ind til deres personlige frygt (Easter Egg).</li><li><strong>Ordblinde-venlig (øverst til venstre):</strong> Fjerner visuel støj og baggrunde og skifter til en læsevenlig skrifttype. Gør det muligt for digitale læseværktøjer at læse siden.</li></ul>' 
+    }
 };
 
 function showInfoModal(target, customText = null) {
